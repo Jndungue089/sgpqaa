@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Sessao Expirada | SGPQAA{% endblock %}
+
+{% block body %}
+<main class="auth-shell">
+    <section class="auth-panel">
+        <div class="auth-intro">
+            <p class="eyebrow">Sessao expirada</p>
+            <h1>A sua sessao terminou.</h1>
+            <p class="lead">Por seguranca, o sistema encerrou a sua sessao depois de algum tempo sem actividade. Entre novamente para continuar.</p>
+        </div>
+        <div class="auth-form">
+            <h2>Continuar</h2>
+            <p>Se estava a trabalhar numa area protegida, basta iniciar sessao novamente para retomar o uso do sistema.</p>
+            <a class="button button-primary button-full" href="{% url 'portal:login' %}">Entrar novamente</a>
+            <a class="button button-secondary button-full" href="{% url 'portal:home' %}">Ir para a pagina inicial</a>
+        </div>
+    </section>
+</main>
+{% endblock %}

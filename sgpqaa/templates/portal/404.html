@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Pagina Nao Encontrada | SGPQAA{% endblock %}
+
+{% block body %}
+<main class="auth-shell">
+    <section class="auth-panel">
+        <div class="auth-intro">
+            <p class="eyebrow">Erro 404</p>
+            <h1>Esta pagina nao foi encontrada.</h1>
+            <p class="lead">O endereco que tentou abrir nao existe ou pode ter sido alterado dentro do sistema.</p>
+        </div>
+        <div class="auth-form">
+            <h2>O que pode fazer agora</h2>
+            <p>Voltar para a pagina inicial, entrar novamente no sistema ou regressar ao painel anterior.</p>
+            <a class="button button-primary button-full" href="{% url 'portal:home' %}">Ir para a pagina inicial</a>
+            <a class="button button-secondary button-full" href="{% url 'portal:login' %}">Ir para o login</a>
+        </div>
+    </section>
+</main>
+{% endblock %}

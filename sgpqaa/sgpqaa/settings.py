@@ -47,6 +47,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'portal.middleware.SessionExpiryRedirectMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
@@ -119,6 +120,8 @@ MEDIA_ROOT = BASE_DIR / 'media'
 LOGIN_URL = 'portal:login'
 LOGIN_REDIRECT_URL = 'portal:dashboard'
 LOGOUT_REDIRECT_URL = 'portal:home'
+SESSION_COOKIE_AGE = 1800
+SESSION_SAVE_EVERY_REQUEST = True
 
 ASSOCIATION_NAME = 'ANATA'
 DEFAULT_QUOTA_AMOUNT = 25000

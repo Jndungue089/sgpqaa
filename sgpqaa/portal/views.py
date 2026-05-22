@@ -85,6 +85,16 @@ def dashboard(request):
     if profile.role == MemberProfile.Role.TREASURER:
         return redirect('portal:treasurer_dashboard')
 
+    current_month = timezone.localdate().replace(day=1)
+    available_quota = MonthlyQuota.objects.filter(
+        vehicle__owner=profile,
+        reference_month=current_month,
+        status__in=[
+            MonthlyQuota.Status.PENDING,
+            MonthlyQuota.Status.OVERDUE,
+            MonthlyQuota.Status.AWAITING_VALIDATION,
+        ],
+    ).select_related('vehicle').order_by('due_date').first()
     context = {
         'profile': profile,
         'vehicles_count': Vehicle.objects.filter(owner=profile).count(),
@@ -100,6 +110,7 @@ def dashboard(request):
         ).count(),
         'recent_vehicles': Vehicle.objects.filter(owner=profile, is_active=True).order_by('-created_at')[:3],
         'recent_quotas': MonthlyQuota.objects.filter(vehicle__owner=profile).select_related('vehicle')[:5],
+        'available_quota': available_quota,
     }
     return render(request, 'portal/dashboard.html', context)
 
@@ -374,3 +385,11 @@ def mark_cash_payment(request, quota_id):
         messages.success(request, 'Pagamento em maos marcado como pago com sucesso.')
 
     return redirect('portal:treasurer_dashboard')
+
+
+def session_expired(request):
+    return render(request, 'portal/session_expired.html', status=401)
+
+
+def custom_404(request, exception):
+    return render(request, 'portal/404.html', status=404)

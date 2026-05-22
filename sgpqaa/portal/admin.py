@@ -1,6 +1,10 @@
 from django.contrib import admin
+from django.contrib import messages
+from django.shortcuts import redirect
+from django.urls import path, reverse
 
 from .models import MemberProfile, MonthlyQuota, PaymentRecord, QuotaConfig, Vehicle
+from .services import generate_quotas_from_active_config
 
 
 @admin.register(MemberProfile)
@@ -22,6 +26,34 @@ class QuotaConfigAdmin(admin.ModelAdmin):
     list_display = ('amount', 'late_fee_percentage', 'effective_from', 'is_active')
     list_filter = ('is_active',)
     ordering = ('-effective_from',)
+    change_list_template = 'admin/portal/quotaconfig/change_list.html'
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                'gerar-quotas-mes/',
+                self.admin_site.admin_view(self.generate_month_quotas_view),
+                name='portal_quotaconfig_generate_month_quotas',
+            ),
+        ]
+        return custom_urls + urls
+
+    def generate_month_quotas_view(self, request):
+        created_count = generate_quotas_from_active_config()
+        if created_count:
+            self.message_user(
+                request,
+                f'{created_count} quotas do mes foram geradas automaticamente.',
+                level=messages.SUCCESS,
+            )
+        else:
+            self.message_user(
+                request,
+                'Nenhuma nova quota foi gerada. Verifique se existe configuracao activa ou se as quotas ja existem.',
+                level=messages.WARNING,
+            )
+        return redirect(reverse('admin:portal_quotaconfig_changelist'))
 
 
 @admin.register(MonthlyQuota)

@@ -403,6 +403,10 @@ h3 {
     padding: 1.5rem;
 }
 
+.dashboard-alert {
+    margin-bottom: 1.5rem;
+}
+
 .vehicle-heading {
     margin-top: 0;
 }

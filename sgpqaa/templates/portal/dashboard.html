@@ -19,6 +19,19 @@
         </div>
     </section>
 
+    {% if available_quota %}
+        <section class="vehicle-list-panel dashboard-alert">
+            <div class="section-heading vehicle-heading">
+                <p class="eyebrow">Quota disponivel</p>
+                <h2>A sua quota de {{ available_quota.reference_month|date:"F \\d\\e Y" }} esta disponivel.</h2>
+            </div>
+            <p class="lead">Viatura: {{ available_quota.vehicle.plate_number }} | Valor: {{ available_quota.amount_due }} AOA | Estado: {{ available_quota.get_status_display }}</p>
+            <div class="dashboard-actions">
+                <a class="button button-primary" href="{% url 'portal:quotas' %}">Ver esta quota</a>
+            </div>
+        </section>
+    {% endif %}
+
     <section class="dashboard-top-grid">
         <article>
             <h3>{{ vehicles_count }}</h3>

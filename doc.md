@@ -1771,7 +1771,104 @@ Ele tambem ajuda a gestao a controlar:
 
 Isto aproxima ainda mais o projecto de uma ferramenta administrativa real.
 
-## 11. Landing page inicial
+## 11. Geracao explicita de quotas, notificacao ao associado, pagina 404 e sessao expirada
+
+Nesta etapa, foram fechados quatro pontos importantes do comportamento do sistema.
+
+### 11.1 Botao explicito para gerar quotas do mes no admin
+
+Mesmo com a geracao automatica ja activa, foi acrescentado um comando explicito no painel
+admin para gerar as quotas do mes.
+
+Isto foi feito porque o roadmap pedia uma accao clara e visivel para essa operacao.
+
+Agora, no admin da configuracao de quotas, existe uma opcao chamada:
+
+- `Gerar quotas do mes`
+
+### 11.2 Porque este botao e importante
+
+Ele e importante porque:
+
+- deixa a operacao mais visivel para demonstracao
+- ajuda o administrador a perceber que pode forcar a verificacao das quotas
+- aproxima o sistema do requisito literal do projecto
+
+### 11.3 O que o botao faz
+
+Quando o botao e usado, o sistema:
+
+1. procura a configuracao activa de quota
+2. verifica as viaturas activas
+3. gera as quotas do periodo configurado
+4. evita criar duplicados se elas ja existirem
+
+### 11.4 Notificacao visivel ao associado
+
+Foi tambem criada uma notificacao visivel no portal do associado.
+
+Quando existe uma quota disponivel para o periodo actual, o sistema mostra um destaque com:
+
+- o mes da quota
+- a viatura
+- o valor
+- o estado
+
+### 11.5 Porque essa notificacao foi criada
+
+Ela foi criada para o associado perceber rapidamente que:
+
+- ja existe quota a tratar
+- ha uma cobranca activa no sistema
+- ele deve consultar a area de quotas
+
+Isto melhora a clareza da interface e reduz a necessidade de procurar manualmente a informacao.
+
+### 11.6 Pagina 404 personalizada
+
+Foi criada uma pagina 404 personalizada.
+
+Uma pagina 404 aparece quando o utilizador tenta abrir um endereco que nao existe.
+
+Em vez de mostrar uma mensagem tecnica fria, o sistema agora mostra uma pagina amigavel,
+explicando que a rota nao foi encontrada e oferecendo caminho de volta.
+
+### 11.7 Porque a pagina 404 e importante
+
+Ela melhora:
+
+- a experiencia de uso
+- a apresentacao visual do projecto
+- a sensacao de sistema completo
+
+### 11.8 Tratamento de sessao expirada
+
+Tambem foi criado um tratamento para sessao expirada.
+
+Em vez de um comportamento confuso quando a sessao deixa de ser valida, o utilizador passa a
+ver uma pagina clara a explicar que precisa entrar novamente.
+
+### 11.9 Porque a sessao expirada precisa de tratamento proprio
+
+Sem isso, o utilizador pode pensar que:
+
+- o sistema avariou
+- o login falhou
+- a pagina deixou de funcionar
+
+Com uma pagina propria, o sistema comunica claramente o que aconteceu.
+
+### 11.10 O que a banca pode entender desta etapa
+
+Esta fase mostra que o projecto ja nao trata apenas o negocio central.
+Ele tambem cuida de detalhes importantes de uso e apresentacao, como:
+
+- accoes administrativas explicitas
+- alertas ao associado
+- navegacao de erro
+- expiracao de sessao com explicacao clara
+
+## 12. Landing page inicial
 
 A landing page foi criada para ser a porta de entrada do sistema.
 Ela mostra:
@@ -1785,7 +1882,7 @@ Ela mostra:
 Esta pagina ajuda muito na apresentacao porque, antes mesmo do login, a banca consegue
 entender o que esta a ser demonstrado.
 
-## 12. Etapa de autenticacao implementada
+## 13. Etapa de autenticacao implementada
 
 Nesta etapa, passamos a ter um fluxo real de entrada no sistema.
 
@@ -1971,7 +2068,7 @@ A decisao tomada foi:
 - o papel de tesoureiro e atribuido apenas pela administracao
 - o administrador e quem promove esse utilizador no sistema
 
-## 13. Historico de alteracoes
+## 14. Historico de alteracoes
 
 ### Alteracao 1
 
@@ -2208,7 +2305,24 @@ Decisao:
 Estas melhorias foram feitas para tornar a interface mais clara e escalavel. Quando houver
 muitas quotas ou muitos pagamentos, o sistema continua legivel e mais facil de navegar.
 
-## 14. Proximos passos previstos
+### Alteracao 15
+
+Data: 22 de Maio de 2026
+
+Foi feito:
+
+- criacao de botao explicito para gerar quotas do mes no admin
+- criacao de notificacao visivel de quota disponivel no portal do associado
+- criacao de pagina 404 personalizada
+- criacao de tratamento de sessao expirada
+
+Decisao:
+
+Estas melhorias foram feitas para aproximar o sistema dos requisitos do roadmap e melhorar a
+experiencia de uso. O objectivo foi deixar o sistema mais completo tanto no negocio como no
+comportamento visual e navegacional.
+
+## 15. Proximos passos previstos
 
 Nas proximas etapas, vamos construir:
 

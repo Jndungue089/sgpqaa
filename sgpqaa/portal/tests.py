@@ -15,6 +15,12 @@ class HomePageTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Controle as quotas dos associados')
 
+    def test_custom_404_page_loads(self):
+        response = self.client.get('/rota-inexistente/')
+
+        self.assertEqual(response.status_code, 404)
+        self.assertContains(response, 'Esta pagina nao foi encontrada')
+
 
 class AuthenticationFlowTests(TestCase):
     def test_register_creates_user_and_profile(self):
@@ -51,6 +57,12 @@ class AuthenticationFlowTests(TestCase):
     def test_dashboard_requires_login(self):
         response = self.client.get(reverse('portal:dashboard'))
         self.assertEqual(response.status_code, 302)
+
+    def test_session_expired_page_loads(self):
+        response = self.client.get(reverse('portal:session_expired'))
+
+        self.assertEqual(response.status_code, 401)
+        self.assertContains(response, 'A sua sessao terminou')
 
     def test_superuser_is_redirected_to_django_admin(self):
         user = User.objects.create_superuser(username='rootadmin', email='root@example.com', password='SenhaForte#2026')
@@ -163,6 +175,21 @@ class QuotaAndTreasuryFlowTests(TestCase):
         response = self.client.get(reverse('portal:dashboard'))
 
         self.assertRedirects(response, reverse('portal:treasurer_dashboard'))
+
+    def test_member_dashboard_shows_available_quota_notice(self):
+        MonthlyQuota.objects.create(
+            vehicle=self.vehicle,
+            reference_month=date.today().replace(day=1),
+            due_date=date.today(),
+            amount_due='25000.00',
+            status=MonthlyQuota.Status.PENDING,
+        )
+        self.client.login(username='carlos', password='SenhaForte#2026')
+
+        response = self.client.get(reverse('portal:dashboard'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Quota disponivel')
 
     def test_member_can_submit_transfer_proof_for_pending_quota(self):
         quota = MonthlyQuota.objects.create(
