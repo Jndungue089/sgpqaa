@@ -95,12 +95,12 @@ class MonthlyQuota(TimeStampedModel):
 
 class PaymentRecord(TimeStampedModel):
     class Method(models.TextChoices):
-        CASH = 'cash', 'Dinheiro'
-        MULTICAIXA = 'multicaixa', 'Multicaixa'
+        CASH = 'cash', 'Pagamento em maos'
+        BANK_TRANSFER = 'bank_transfer', 'Transferencia bancaria'
 
     class Status(models.TextChoices):
         PENDING = 'pending', 'Pendente'
-        SIMULATED = 'simulated', 'Simulado'
+        SUBMITTED = 'submitted', 'Comprovante submetido'
         VALIDATED = 'validated', 'Validado'
         REJECTED = 'rejected', 'Rejeitado'
 
@@ -110,6 +110,7 @@ class PaymentRecord(TimeStampedModel):
     amount_paid = models.DecimalField('Valor pago', max_digits=10, decimal_places=2)
     payment_date = models.DateTimeField('Data do pagamento')
     simulated_reference = models.CharField(max_length=50, blank=True)
+    proof_file = models.FileField(upload_to='payment_proofs/', blank=True)
     validated_by = models.ForeignKey(
         MemberProfile,
         on_delete=models.PROTECT,

@@ -8,7 +8,7 @@
         <div>
             <p class="eyebrow">Dashboard do tesoureiro</p>
             <h1>Controlar quotas e validar pagamentos.</h1>
-            <p class="lead">Esta area centraliza a geracao de quotas para viaturas activas e a validacao dos pagamentos simulados pelos associados.</p>
+            <p class="lead">As quotas sao geradas automaticamente quando o administrador define uma configuracao activa. Aqui a tesouraria confirma pagamentos em maos e valida transferencias com comprovante.</p>
         </div>
         <div class="dashboard-actions">
             <a class="button button-secondary" href="{% url 'portal:logout' %}">Terminar sessao</a>
@@ -31,29 +31,26 @@
     </section>
 
     <section class="vehicle-layout">
-        <form method="post" class="auth-form vehicle-form-panel">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="generate_quotas">
-            <h2>Gerar quotas</h2>
-            {% if generation_form.non_field_errors %}
-                <div class="form-error">{{ generation_form.non_field_errors }}</div>
+        <section class="auth-form vehicle-form-panel">
+            <h2>Configuracao activa de quotas</h2>
+            {% if active_config %}
+                <div class="payment-summary">
+                    <p><strong>Valor:</strong> {{ active_config.amount }} AOA</p>
+                    <p><strong>Vigora desde:</strong> {{ active_config.effective_from|date:"d/m/Y" }}</p>
+                    <p><strong>Multa:</strong> {{ active_config.late_fee_percentage }}%</p>
+                </div>
+                <p class="quota-note">Sempre que o administrador activar uma configuracao, o sistema gera automaticamente quotas para as viaturas activas.</p>
+            {% else %}
+                <div class="form-error">
+                    Ainda nao existe configuracao activa de quota. O administrador deve definir o valor no painel admin.
+                </div>
             {% endif %}
-            {% for field in generation_form %}
-                <label class="field-group">
-                    <span>{{ field.label }}</span>
-                    {{ field }}
-                    {% if field.errors %}
-                        <small class="field-error">{{ field.errors|join:", " }}</small>
-                    {% endif %}
-                </label>
-            {% endfor %}
-            <button type="submit" class="button button-primary button-full">Gerar quotas do periodo</button>
-        </form>
+        </section>
 
         <section class="vehicle-list-panel">
             <div class="section-heading vehicle-heading">
-                <p class="eyebrow">Pagamentos pendentes</p>
-                <h2>Aguardam validacao</h2>
+                <p class="eyebrow">Transferencias pendentes</p>
+                <h2>Comprovantes a validar</h2>
             </div>
             <div class="vehicle-card-list">
                 {% for payment in pending_payments %}
@@ -62,8 +59,11 @@
                             <h3>{{ payment.quota.vehicle.plate_number }} - {{ payment.quota.reference_month|date:"m/Y" }}</h3>
                             <p>{{ payment.quota.vehicle.owner.user.first_name|default:payment.quota.vehicle.owner.user.username }} | {{ payment.get_method_display }} | {{ payment.amount_paid }} AOA</p>
                             <span class="vehicle-status">
-                                {% if payment.simulated_reference %}{{ payment.simulated_reference }}{% else %}Pagamento em dinheiro{% endif %}
+                                {% if payment.simulated_reference %}{{ payment.simulated_reference }}{% endif %}
                             </span>
+                            {% if payment.proof_file %}
+                                <p><a href="{{ payment.proof_file.url }}">Ver comprovante</a></p>
+                            {% endif %}
                         </div>
                         <form method="post" action="{% url 'portal:validate_payment' payment.id %}">
                             {% csrf_token %}
@@ -80,6 +80,34 @@
                 {% endfor %}
             </div>
         </section>
+    </section>
+
+    <section class="vehicle-list-panel treasurer-panel">
+        <div class="section-heading vehicle-heading">
+            <p class="eyebrow">Pagamento em maos</p>
+            <h2>Quotas que podem ser marcadas como pagas</h2>
+        </div>
+        <div class="vehicle-card-list">
+            {% for quota in unpaid_quotas %}
+                <article class="vehicle-card">
+                    <div>
+                        <h3>{{ quota.vehicle.plate_number }} - {{ quota.reference_month|date:"m/Y" }}</h3>
+                        <p>{{ quota.vehicle.owner.user.first_name|default:quota.vehicle.owner.user.username }} | {{ quota.amount_due }} AOA | {{ quota.get_status_display }}</p>
+                    </div>
+                    <form method="post" action="{% url 'portal:mark_cash_payment' quota.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="button button-secondary">Marcar pago em maos</button>
+                    </form>
+                </article>
+            {% empty %}
+                <article class="vehicle-card">
+                    <div>
+                        <h3>Sem quotas disponiveis</h3>
+                        <p>Neste momento nao existem quotas pendentes para pagamento em maos.</p>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
     </section>
 
     <section class="dashboard-preview">

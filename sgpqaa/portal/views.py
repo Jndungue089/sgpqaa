@@ -1,4 +1,3 @@
-from decimal import Decimal
 from uuid import uuid4
 
 from django.contrib import messages
@@ -9,8 +8,9 @@ from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from .forms import LoginForm, PaymentSimulationForm, QuotaGenerationForm, RegisterForm, VehicleForm
+from .forms import BankTransferProofForm, LoginForm, RegisterForm, VehicleForm
 from .models import MemberProfile, MonthlyQuota, PaymentRecord, QuotaConfig, Vehicle
+from .services import generate_quotas_from_active_config, get_active_quota_config
 
 
 def get_or_create_profile(user):
@@ -21,13 +21,6 @@ def get_or_create_profile(user):
             'role': MemberProfile.Role.ADMIN if user.is_staff else MemberProfile.Role.MEMBER,
         },
     )[0]
-
-
-def get_current_quota_amount():
-    current_config = QuotaConfig.objects.filter(is_active=True).order_by('-effective_from').first()
-    if current_config:
-        return current_config.amount
-    return Decimal(str(settings.DEFAULT_QUOTA_AMOUNT))
 
 
 def ensure_treasurer_access(profile):
@@ -133,6 +126,7 @@ def vehicle_deactivate(request, vehicle_id):
 @login_required
 def quota_list(request):
     profile = get_or_create_profile(request.user)
+    generate_quotas_from_active_config()
     quotas = MonthlyQuota.objects.filter(vehicle__owner=profile).select_related('vehicle')
     context = {
         'profile': profile,
@@ -147,33 +141,29 @@ def simulate_payment(request, quota_id):
     quota = get_object_or_404(MonthlyQuota.objects.select_related('vehicle'), pk=quota_id, vehicle__owner=profile)
 
     if quota.status not in {MonthlyQuota.Status.PENDING, MonthlyQuota.Status.OVERDUE}:
-        messages.error(request, 'Esta quota nao esta disponivel para simulacao de pagamento.')
+        messages.error(request, 'Esta quota nao esta disponivel para submissao de comprovante.')
         return redirect('portal:quotas')
 
-    form = PaymentSimulationForm(request.POST or None)
+    form = BankTransferProofForm(request.POST or None, request.FILES or None)
     if request.method == 'POST' and form.is_valid():
-        method = form.cleaned_data['method']
-        simulated_reference = ''
-        if method == PaymentRecord.Method.MULTICAIXA:
-            simulated_reference = f'MCX-{uuid4().hex[:10].upper()}'
-
         PaymentRecord.objects.create(
             quota=quota,
-            method=method,
-            status=PaymentRecord.Status.SIMULATED,
+            method=PaymentRecord.Method.BANK_TRANSFER,
+            status=PaymentRecord.Status.SUBMITTED,
             amount_paid=quota.amount_due,
             payment_date=timezone.now(),
-            simulated_reference=simulated_reference,
+            simulated_reference=f'TRF-{uuid4().hex[:10].upper()}',
+            proof_file=form.cleaned_data['proof_file'],
             notes=form.cleaned_data['notes'],
         )
         quota.status = MonthlyQuota.Status.AWAITING_VALIDATION
         quota.save(update_fields=['status', 'updated_at'])
-        messages.success(request, 'Pagamento simulado com sucesso. Aguarda validacao do tesoureiro.')
+        messages.success(request, 'Comprovante enviado com sucesso. Aguarda validacao do tesoureiro.')
         return redirect('portal:quotas')
 
     return render(
         request,
-        'portal/simulate_payment.html',
+        'portal/submit_transfer.html',
         {
             'form': form,
             'quota': quota,
@@ -188,45 +178,26 @@ def treasurer_dashboard(request):
     if not ensure_treasurer_access(profile):
         return HttpResponseForbidden('Apenas o tesoureiro ou administrador pode aceder a esta area.')
 
-    generation_form = QuotaGenerationForm(
-        request.POST if request.method == 'POST' and request.POST.get('action') == 'generate_quotas' else None,
-        initial={'amount': get_current_quota_amount()},
-    )
-
-    if request.method == 'POST' and request.POST.get('action') == 'generate_quotas' and generation_form.is_valid():
-        reference_month = generation_form.cleaned_data['reference_month'].replace(day=1)
-        due_date = generation_form.cleaned_data['due_date']
-        amount = generation_form.cleaned_data['amount']
-        created_count = 0
-
-        for vehicle in Vehicle.objects.filter(is_active=True).select_related('owner'):
-            _, created = MonthlyQuota.objects.get_or_create(
-                vehicle=vehicle,
-                reference_month=reference_month,
-                defaults={
-                    'due_date': due_date,
-                    'amount_due': amount,
-                    'status': MonthlyQuota.Status.PENDING,
-                    'generated_automatically': True,
-                },
-            )
-            if created:
-                created_count += 1
-
-        messages.success(request, f'{created_count} quotas geradas para o periodo seleccionado.')
-        return redirect('portal:treasurer_dashboard')
+    created_count = generate_quotas_from_active_config()
+    if created_count:
+        messages.info(request, f'{created_count} novas quotas automaticas foram detectadas para a configuracao activa.')
 
     pending_payments = PaymentRecord.objects.filter(
-        status=PaymentRecord.Status.SIMULATED,
+        status=PaymentRecord.Status.SUBMITTED,
         quota__status=MonthlyQuota.Status.AWAITING_VALIDATION,
     ).select_related('quota__vehicle__owner__user')
     recent_quotas = MonthlyQuota.objects.select_related('vehicle__owner__user')[:8]
+    unpaid_quotas = MonthlyQuota.objects.filter(
+        status__in=[MonthlyQuota.Status.PENDING, MonthlyQuota.Status.OVERDUE]
+    ).select_related('vehicle__owner__user')[:8]
+    active_config = get_active_quota_config()
 
     context = {
         'profile': profile,
-        'generation_form': generation_form,
         'pending_payments': pending_payments,
         'recent_quotas': recent_quotas,
+        'unpaid_quotas': unpaid_quotas,
+        'active_config': active_config,
         'vehicles_total': Vehicle.objects.filter(is_active=True).count(),
         'quotas_pending_total': MonthlyQuota.objects.filter(status=MonthlyQuota.Status.PENDING).count(),
         'payments_waiting_total': pending_payments.count(),
@@ -249,5 +220,30 @@ def validate_payment(request, payment_id):
         payment.quota.status = MonthlyQuota.Status.PAID
         payment.quota.save(update_fields=['status', 'updated_at'])
         messages.success(request, 'Pagamento validado com sucesso.')
+
+    return redirect('portal:treasurer_dashboard')
+
+
+@login_required
+def mark_cash_payment(request, quota_id):
+    profile = get_or_create_profile(request.user)
+    if not ensure_treasurer_access(profile):
+        return HttpResponseForbidden('Apenas o tesoureiro ou administrador pode marcar pagamento em maos.')
+
+    quota = get_object_or_404(MonthlyQuota, pk=quota_id)
+    if request.method == 'POST' and quota.status in {MonthlyQuota.Status.PENDING, MonthlyQuota.Status.OVERDUE}:
+        PaymentRecord.objects.create(
+            quota=quota,
+            method=PaymentRecord.Method.CASH,
+            status=PaymentRecord.Status.VALIDATED,
+            amount_paid=quota.amount_due,
+            payment_date=timezone.now(),
+            validated_by=profile,
+            validated_at=timezone.now(),
+            notes='Pagamento em maos confirmado pela tesouraria.',
+        )
+        quota.status = MonthlyQuota.Status.PAID
+        quota.save(update_fields=['status', 'updated_at'])
+        messages.success(request, 'Pagamento em maos marcado como pago com sucesso.')
 
     return redirect('portal:treasurer_dashboard')

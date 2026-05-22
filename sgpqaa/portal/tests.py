@@ -1,10 +1,11 @@
 from datetime import date
 
 from django.contrib.auth.models import User
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import MemberProfile, MonthlyQuota, PaymentRecord, Vehicle
+from .models import MemberProfile, MonthlyQuota, PaymentRecord, QuotaConfig, Vehicle
 
 
 class HomePageTests(TestCase):
@@ -112,25 +113,19 @@ class QuotaAndTreasuryFlowTests(TestCase):
             color='Preto',
         )
 
-    def test_treasurer_can_generate_quotas_for_active_vehicles(self):
-        self.client.login(username='tesoureiro', password='SenhaForte#2026')
-
-        response = self.client.post(
-            reverse('portal:treasurer_dashboard'),
-            {
-                'action': 'generate_quotas',
-                'reference_month': '2026-06-01',
-                'due_date': '2026-06-10',
-                'amount': '25000.00',
-            },
+    def test_active_quota_config_generates_quotas_automatically(self):
+        QuotaConfig.objects.create(
+            amount='25000.00',
+            late_fee_percentage='0.00',
+            effective_from=date(2026, 6, 10),
+            is_active=True,
         )
 
-        self.assertRedirects(response, reverse('portal:treasurer_dashboard'))
         self.assertTrue(
             MonthlyQuota.objects.filter(vehicle=self.vehicle, reference_month=date(2026, 6, 1)).exists()
         )
 
-    def test_member_can_simulate_payment_for_pending_quota(self):
+    def test_member_can_submit_transfer_proof_for_pending_quota(self):
         quota = MonthlyQuota.objects.create(
             vehicle=self.vehicle,
             reference_month=date(2026, 6, 1),
@@ -139,21 +134,22 @@ class QuotaAndTreasuryFlowTests(TestCase):
             status=MonthlyQuota.Status.PENDING,
         )
         self.client.login(username='carlos', password='SenhaForte#2026')
+        proof = SimpleUploadedFile('comprovante.txt', b'comprovante bancario')
 
         response = self.client.post(
             reverse('portal:simulate_payment', args=[quota.id]),
             {
-                'method': PaymentRecord.Method.MULTICAIXA,
                 'notes': 'Pagamento de teste',
+                'proof_file': proof,
             },
         )
 
         self.assertRedirects(response, reverse('portal:quotas'))
         quota.refresh_from_db()
         self.assertEqual(quota.status, MonthlyQuota.Status.AWAITING_VALIDATION)
-        self.assertTrue(PaymentRecord.objects.filter(quota=quota, status=PaymentRecord.Status.SIMULATED).exists())
+        self.assertTrue(PaymentRecord.objects.filter(quota=quota, status=PaymentRecord.Status.SUBMITTED).exists())
 
-    def test_treasurer_can_validate_simulated_payment(self):
+    def test_treasurer_can_validate_transfer_payment(self):
         quota = MonthlyQuota.objects.create(
             vehicle=self.vehicle,
             reference_month=date(2026, 6, 1),
@@ -163,10 +159,11 @@ class QuotaAndTreasuryFlowTests(TestCase):
         )
         payment = PaymentRecord.objects.create(
             quota=quota,
-            method=PaymentRecord.Method.CASH,
-            status=PaymentRecord.Status.SIMULATED,
+            method=PaymentRecord.Method.BANK_TRANSFER,
+            status=PaymentRecord.Status.SUBMITTED,
             amount_paid='25000.00',
             payment_date='2026-06-02T10:00:00Z',
+            proof_file=SimpleUploadedFile('comprovante.txt', b'comprovante'),
         )
         self.client.login(username='tesoureiro', password='SenhaForte#2026')
 
@@ -178,3 +175,22 @@ class QuotaAndTreasuryFlowTests(TestCase):
         self.assertEqual(payment.status, PaymentRecord.Status.VALIDATED)
         self.assertEqual(payment.validated_by, self.treasurer_profile)
         self.assertEqual(quota.status, MonthlyQuota.Status.PAID)
+
+    def test_treasurer_can_mark_cash_payment_as_paid(self):
+        quota = MonthlyQuota.objects.create(
+            vehicle=self.vehicle,
+            reference_month=date(2026, 6, 1),
+            due_date=date(2026, 6, 10),
+            amount_due='25000.00',
+            status=MonthlyQuota.Status.PENDING,
+        )
+        self.client.login(username='tesoureiro', password='SenhaForte#2026')
+
+        response = self.client.post(reverse('portal:mark_cash_payment', args=[quota.id]))
+
+        self.assertRedirects(response, reverse('portal:treasurer_dashboard'))
+        quota.refresh_from_db()
+        payment = PaymentRecord.objects.get(quota=quota)
+        self.assertEqual(quota.status, MonthlyQuota.Status.PAID)
+        self.assertEqual(payment.method, PaymentRecord.Method.CASH)
+        self.assertEqual(payment.status, PaymentRecord.Status.VALIDATED)

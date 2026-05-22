@@ -1093,194 +1093,268 @@ Em termos simples, esta fase mostra que:
 
 Isto aproxima o projecto de uma situacao real de controlo administrativo.
 
-## 8. Dashboard do tesoureiro, geracao de quotas e simulacao de pagamento
+## 8. Dashboard do tesoureiro, geracao automatica de quotas e validacao de pagamentos
 
-Esta etapa representa o centro funcional do sistema.
-Aqui deixamos de ter apenas cadastro e autenticacao e passamos a ter um fluxo de cobranca.
+Esta etapa representa o coracao financeiro do sistema.
 
-### 8.1 Porque foi criada apenas a dashboard do tesoureiro
+Aqui o projecto deixa de ser apenas um cadastro e passa a controlar:
 
-O pedido desta fase foi criar apenas a dashboard por perfil do tesoureiro.
+- o valor da quota
+- a criacao automatica das cobrancas
+- a confirmacao de pagamento em maos
+- a submissao de comprovantes de transferencia
+- a validacao final feita pela tesouraria
 
-Isto significa:
+### 8.1 Visao geral do fluxo
 
-- o associado continua a ter a sua area simples para ver dados, viaturas e quotas
-- a area realmente especializada por perfil e a do tesoureiro
+O fluxo completo desta parte funciona assim:
 
-Esta decisao foi tomada porque, neste momento, o perfil que mais precisa de operacoes
-proprias e o tesoureiro.
+1. o administrador define o valor da quota no painel admin
+2. o sistema passa a ter uma configuracao activa de quota
+3. as quotas mensais sao geradas automaticamente para as viaturas activas
+4. o associado consulta as suas quotas
+5. se pagar por transferencia, envia o comprovante
+6. se pagar em maos, o tesoureiro ou admin faz a confirmacao no sistema
+7. o tesoureiro valida os comprovantes enviados
+8. a quota passa ao estado `Paga`
 
-Ele e o responsavel por:
+### 8.2 Porque apenas o administrador define o valor da quota
 
-- gerar quotas
-- acompanhar pagamentos simulados
-- validar pagamentos
+O valor da quota e uma configuracao sensivel do sistema.
 
-### 8.2 Qual e o papel do tesoureiro no sistema
+Se qualquer utilizador pudesse alterar esse valor, haveria risco de:
 
-O tesoureiro e o perfil operacional financeiro do sistema.
+- cobrancas erradas
+- perda de controlo financeiro
+- confusao na tesouraria
+- quebra da confianca no sistema
 
-Em linguagem simples:
+Por isso, a regra adoptada foi:
 
-- o associado usa o sistema para consultar e simular o pagamento
-- o tesoureiro usa o sistema para controlar e confirmar
+- apenas o administrador define ou altera o valor da quota
 
-Isto cria uma separacao importante de responsabilidades:
+### 8.3 Como o administrador define o valor da quota
 
-- o associado nao confirma o proprio pagamento
-- o tesoureiro nao regista viaturas em nome do associado
+O administrador entra no painel admin do Django e cria ou activa uma configuracao em
+`QuotaConfig`.
 
-Cada actor tem um papel proprio.
+Essa configuracao guarda:
 
-### 8.3 O que foi implementado nesta etapa
-
-Foi implementado:
-
-- dashboard do tesoureiro
-- formulario de geracao de quotas
-- geracao de quotas para viaturas activas
-- area do associado para ver quotas
-- simulacao de pagamento a partir das quotas geradas
-- validacao do pagamento pelo tesoureiro
-
-### 8.4 Como funciona a geracao de quotas
-
-A geracao de quotas parte das viaturas activas ja registadas.
-
-O tesoureiro informa:
-
-- mes de referencia
-- data de vencimento
 - valor da quota
+- percentagem de multa
+- data a partir da qual a configuracao passa a valer
+- estado activo ou inactivo
 
-Depois disso, o sistema faz o seguinte:
+### 8.4 O que acontece quando o admin estabelece o valor da quota
 
-1. procura todas as viaturas activas
-2. para cada viatura, cria uma quota mensal
-3. liga essa quota directamente a uma viatura
-4. deixa a quota com estado inicial `Pendente`
+Quando o administrador cria ou activa uma configuracao de quota:
 
-### 8.5 Porque a quota e gerada por viatura
+1. essa configuracao passa a ser a configuracao activa
+2. o sistema desactiva as configuracoes activas anteriores
+3. o sistema gera automaticamente quotas para as viaturas activas
 
-Esta foi uma decisao central do projecto.
+Isto significa que a geracao ja nao depende de um clique manual do tesoureiro para criar as
+quotas do periodo principal.
 
-Nao geramos a quota apenas por associado.
-Geramos a quota por viatura.
+### 8.5 Porque a geracao de quotas foi automatizada
 
-Motivo:
+Esta decisao foi tomada porque, na pratica, a cobranca mensal deve nascer a partir da regra
+administrativa definida pela associacao.
 
-- o problema real esta ligado ao carro registado
-- um associado pode ter mais de uma viatura
-- cada viatura pode ter a sua propria sequencia de cobrancas
+Se o valor foi definido, o sistema ja sabe:
 
-Isto melhora:
+- quanto cobrar
+- a partir de quando cobrar
+- para que viaturas cobrar
 
-- controlo
-- organizacao
-- historico
-- clareza para relatorios
+Automatizar esta parte traz vantagens:
 
-### 8.6 Como evitamos quotas duplicadas
+- reduz trabalho manual
+- evita esquecimento
+- torna o sistema mais realista
+- mostra mais maturidade tecnica
+
+### 8.6 Como a geracao automatica funciona tecnicamente
+
+Em linguagem simples, a logica faz isto:
+
+1. procura a configuracao activa
+2. identifica o mes de referencia dessa configuracao
+3. procura todas as viaturas activas
+4. cria uma quota mensal para cada viatura
+5. impede duplicacao da mesma quota no mesmo mes
+
+### 8.7 Como evitamos quotas duplicadas
 
 Uma mesma viatura nao pode receber duas quotas para o mesmo mes.
 
-Essa regra foi definida no desenho da base de dados e tambem respeitada na logica do sistema.
+Exemplo:
 
-Em termos práticos:
+- se a viatura `LD-88-11-CC` ja tem quota para Junho de 2026
+- o sistema nao cria outra quota igual para esse mesmo mes
 
-- se ja existir quota para aquela viatura naquele mes, o sistema nao cria outra
+Esta proteccao foi feita porque duplicacao de quota significaria:
 
-Isto evita:
+- cobranca errada
+- historico confuso
+- possivel conflito financeiro
 
-- cobranca duplicada
-- confusao no historico
-- erros de tesouraria
+### 8.8 O que acontece quando uma nova viatura e criada
 
-### 8.7 O que o associado ve na parte de quotas
+Tambem foi adicionada uma regra importante:
 
-O associado agora pode abrir a sua pagina de quotas e ver:
+- se ja existir uma configuracao activa de quota
+- e uma nova viatura activa for registada
+- o sistema pode garantir a criacao da quota correspondente ao periodo activo
 
-- a viatura a que a quota pertence
-- o mes de referencia
-- o vencimento
-- o valor
-- o estado da quota
+Isto ajuda a manter consistencia entre:
 
-Isto da mais transparencia ao sistema.
+- viaturas activas
+- configuracao activa
+- quotas do sistema
 
-### 8.8 O que significa simulacao de pagamento
+### 8.9 Porque existe uma dashboard propria do tesoureiro
 
-Como este projecto nao tera integracao real com bancos ou Multicaixa, o pagamento foi
-construido como simulacao.
+O tesoureiro recebeu uma dashboard propria porque o seu trabalho e diferente do trabalho do associado.
 
-Simulacao de pagamento significa:
+O associado:
 
-- o sistema nao movimenta dinheiro real
-- o sistema regista que o utilizador declarou ter feito o pagamento
-- o tesoureiro depois valida esse registo
+- regista viaturas
+- consulta quotas
+- envia comprovantes
 
-Ou seja:
+O tesoureiro:
 
-o sistema simula o comportamento de um pagamento real sem depender de uma rede financeira real.
+- acompanha as quotas do sistema
+- confirma pagamentos em maos
+- valida comprovantes de transferencia
 
-### 8.9 Como a simulacao de pagamento funciona
+Isto respeita a divisao de papeis no negocio.
 
-Quando a quota esta com estado `Pendente` ou `Em atraso`, o associado pode abrir a pagina
-de simulacao e escolher um metodo de pagamento.
+### 8.10 O que o tesoureiro ve na sua dashboard
 
-Os metodos disponiveis nesta fase sao:
+Na dashboard do tesoureiro existem areas como:
 
-- Dinheiro
-- Multicaixa
+- configuracao activa de quotas
+- transferencias pendentes de validacao
+- quotas que podem ser marcadas como pagas em maos
+- visao resumida das quotas recentes
 
-Depois disso, o sistema:
+### 8.11 Formas de pagamento definidas no sistema
 
-1. cria um `PaymentRecord`
-2. guarda o valor pago
-3. guarda a data do registo
-4. guarda observacoes, se existirem
-5. gera uma referencia simulada quando o metodo for Multicaixa
-6. altera a quota para `Aguarda validacao`
+Nesta fase, o sistema passa a reconhecer duas formas principais de pagamento:
 
-### 8.10 O que e a referencia simulada
+- pagamento em maos
+- transferencia bancaria
 
-Quando o pagamento e marcado como Multicaixa, o sistema gera um codigo interno de simulacao.
+Cada uma tem uma regra diferente.
 
-Esse codigo existe para dar mais realismo ao fluxo.
+### 8.12 Como funciona o pagamento em maos
 
-Ele ajuda a demonstrar:
+Pagamento em maos significa que o associado entrega o valor fisicamente a um responsavel da
+tesouraria.
 
-- que o sistema pode identificar um pagamento
-- que o pagamento pode ter um codigo de acompanhamento
-- que existe um registo independente da simples mudanca de estado
+Nesse caso:
 
-### 8.11 Porque o pagamento nao vai directo para `Pago`
+- o associado nao marca sozinho a quota como paga
+- o tesoureiro ou administrador e que confirma o pagamento no sistema
 
-Isto tambem foi uma decisao importante.
+### 8.13 Porque o associado nao pode marcar pagamento em maos
 
-Quando o associado simula o pagamento, a quota nao passa logo para `Paga`.
-Ela passa primeiro para `Aguarda validacao`.
+Esta restricao existe por seguranca e controlo.
 
-Motivo:
+Se o associado pudesse marcar sozinho como pago:
 
-- em contexto real, a tesouraria precisa confirmar
-- evita que o associado marque sozinho qualquer quota como paga
-- cria controlo e verificacao
+- o sistema poderia registar pagamentos falsos
+- a tesouraria perderia controlo
+- o historico financeiro deixaria de ser confiavel
 
-### 8.12 Como funciona a validacao pelo tesoureiro
+Por isso, a regra escolhida foi:
 
-Na dashboard do tesoureiro aparece uma lista de pagamentos simulados pendentes.
+- pagamento em maos so pode ser confirmado por tesoureiro ou administrador
 
-Quando o tesoureiro clica em validar:
+### 8.14 O que acontece quando o tesoureiro marca pagamento em maos
 
-1. o `PaymentRecord` passa para `Validado`
+Quando o tesoureiro ou administrador clica para marcar uma quota como paga em maos:
+
+1. o sistema cria um `PaymentRecord`
+2. o metodo fica como `Pagamento em maos`
+3. o estado do pagamento fica como `Validado`
+4. a quota muda imediatamente para `Paga`
+5. o sistema guarda quem confirmou
+6. o sistema guarda a data da confirmacao
+
+### 8.15 Como funciona a transferencia bancaria
+
+No caso de transferencia bancaria:
+
+- o associado faz o pagamento fora do sistema
+- depois entra no sistema
+- escolhe a quota
+- faz upload do comprovante
+
+O sistema nao confirma automaticamente esse pagamento.
+
+Ele apenas regista que o associado submeteu um comprovante.
+
+### 8.16 O que e o upload de comprovante
+
+Upload de comprovante significa enviar um ficheiro para o sistema.
+
+Esse ficheiro pode representar, por exemplo:
+
+- uma imagem
+- um PDF
+- um documento digital com prova da transferencia
+
+No sistema, esse ficheiro fica guardado associado ao registo do pagamento.
+
+### 8.17 O que acontece quando o associado envia o comprovante
+
+Quando o associado envia o comprovante:
+
+1. o sistema cria um `PaymentRecord`
+2. o metodo fica como `Transferencia bancaria`
+3. o estado do pagamento fica como `Comprovante submetido`
+4. o sistema guarda o ficheiro enviado
+5. a quota passa para `Aguarda validacao`
+
+### 8.18 Porque a quota nao vai directamente para `Paga` na transferencia
+
+Isto foi decidido porque o simples envio de um comprovante ainda nao e confirmacao final.
+
+Ainda pode haver situacoes como:
+
+- comprovante errado
+- valor incorrecto
+- comprovante ilegivel
+- tentativa de fraude
+
+Por isso, o comprovante precisa de ser verificado por um responsavel.
+
+### 8.19 Como funciona a validacao pelo tesoureiro
+
+Na dashboard do tesoureiro aparece a lista de transferencias pendentes.
+
+Quando ele valida:
+
+1. o pagamento passa para `Validado`
 2. o sistema guarda quem validou
 3. o sistema guarda a data da validacao
-4. a `MonthlyQuota` passa para `Paga`
+4. a quota correspondente passa para `Paga`
 
-Isto fecha o ciclo da cobranca.
+### 8.20 Porque o tesoureiro valida o comprovante
 
-### 8.13 Estados usados neste fluxo
+O tesoureiro valida porque ele representa o controlo financeiro da associacao.
+
+Isto ajuda a garantir:
+
+- verificacao humana
+- confianca no historico
+- controlo sobre a tesouraria
+- registos coerentes
+
+### 8.21 Estados usados nesta fase
 
 #### Estados da quota
 
@@ -1291,89 +1365,66 @@ Isto fecha o ciclo da cobranca.
 
 #### Estados do pagamento
 
-- `Simulado`
+- `Pendente`
+- `Comprovante submetido`
 - `Validado`
 - `Rejeitado`
 
-### 8.14 Porque usamos estados
+### 8.22 Porque usamos estados
 
-Os estados foram escolhidos porque um processo financeiro precisa mostrar em que fase cada
-item se encontra.
+Os estados existem para que o sistema saiba exactamente em que fase esta cada cobranca.
 
-Sem estados, o sistema teria menos clareza.
+Sem eles, seria dificil responder perguntas como:
 
-Com estados, o sistema consegue responder perguntas como:
+- esta quota ja foi criada?
+- o associado ja enviou comprovante?
+- a tesouraria ja confirmou?
+- o pagamento em maos ja foi registado?
 
-- esta quota ja foi gerada?
-- o associado ja disse que pagou?
-- o tesoureiro ja confirmou?
-- este pagamento esta concluido ou ainda esta em analise?
+### 8.23 Decisoes tecnicas tomadas nesta etapa
 
-### 8.15 Decisoes tecnicas tomadas nesta etapa
-
-#### Decisao 1: separar geracao de quota da validacao de pagamento
+#### Decisao 1: o admin define o valor da quota
 
 Motivo:
 
-- uma cobranca e uma coisa
-- a confirmacao do pagamento e outra
+- configuracao financeira deve ficar com a administracao
 
-Isto torna o sistema mais fiel a realidade.
-
-#### Decisao 2: permitir simulacao apenas em quotas disponiveis
-
-O associado nao pode simular pagamento de uma quota que ja esteja paga ou em validacao.
+#### Decisao 2: geracao automatica de quotas
 
 Motivo:
 
-- evita repeticao
-- evita duplicidade de pedidos
-- protege a coerencia dos dados
+- reduz trabalho manual
+- alinha o sistema com a regra da associacao
 
-#### Decisao 3: dashboard especializada para o tesoureiro
-
-O tesoureiro recebeu uma area propria porque ele executa tarefas diferentes do associado.
+#### Decisao 3: pagamento em maos so por tesouraria
 
 Motivo:
 
-- separar responsabilidades
-- dar foco ao trabalho financeiro
-- facilitar a demonstracao da logica por perfil
+- protege a confianca do sistema
 
-#### Decisao 4: validar pagamento no servidor
-
-A mudanca de estados e feita no servidor, e nao apenas na interface.
+#### Decisao 4: transferencia com comprovante
 
 Motivo:
 
-- garante consistencia
-- melhora seguranca
+- cria um fluxo convincente sem integracao bancaria real
+
+#### Decisao 5: validacao no servidor
+
+Motivo:
+
 - evita alteracoes falsas apenas no browser
+- garante consistencia real dos dados
 
-### 8.16 Fluxo completo desta fase
+### 8.24 O que a banca pode entender desta etapa
 
-Em linguagem simples, o processo agora e este:
+Em termos simples, esta fase mostra que o sistema ja faz controlo administrativo e financeiro:
 
-1. o associado regista a viatura
-2. o tesoureiro gera a quota dessa viatura
-3. o associado ve a quota no seu painel
-4. o associado simula o pagamento
-5. a quota fica a aguardar validacao
-6. o tesoureiro valida
-7. a quota passa para paga
+- o admin define a regra de cobranca
+- o sistema gera as quotas
+- o associado envia prova de pagamento
+- a tesouraria confirma
 
-### 8.17 O que a banca pode entender desta etapa
-
-Esta parte mostra que o sistema ja faz mais do que guardar dados.
-
-Ele ja controla um processo real:
-
-- cadastro
-- cobranca
-- declaracao de pagamento
-- validacao financeira
-
-Isto da mais maturidade ao projecto e demonstra valor pratico.
+Isto aproxima muito o projecto de um sistema real de gestao de quotas.
 
 ## 9. Landing page inicial
 
@@ -1717,27 +1768,25 @@ Data: 22 de Maio de 2026
 Foi feito:
 
 - criacao da dashboard do tesoureiro
-- implementacao da geracao de quotas a partir das viaturas activas
+- implementacao da geracao automatica de quotas a partir da configuracao activa definida pelo administrador
 - criacao da pagina de quotas do associado
-- implementacao da simulacao de pagamento
+- implementacao do pagamento em maos marcado pela tesouraria
+- implementacao da transferencia bancaria com upload de comprovante
 - implementacao da validacao do pagamento pelo tesoureiro
 - explicacao detalhada de toda esta logica no documento
 
 Decisao:
 
-O sistema passou a tratar a quota como elemento financeiro central do processo. O tesoureiro
-ficou responsavel pela geracao e validacao, enquanto o associado ficou responsavel apenas
-pela simulacao do pagamento e pelo acompanhamento das suas proprias quotas.
+O sistema passou a tratar a quota como elemento financeiro central do processo. O
+administrador ficou responsavel por definir o valor da quota, o sistema ficou responsavel
+pela geracao automatica das cobrancas, e a tesouraria ficou responsavel por confirmar os
+pagamentos em maos e validar os comprovantes de transferencia enviados pelos associados.
 
 ## 12. Proximos passos previstos
 
 Nas proximas etapas, vamos construir:
 
-- autenticacao
-- registo de associados
-- registo de viaturas
-- dashboard por perfil
-- simulacao de pagamento
-- validacao pelo tesoureiro
 - recibo
+- historico de pagamentos
+- debitos e multas por atraso
 - relatorios

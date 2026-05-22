@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
-{% block title %}Simular Pagamento | SGPQAA{% endblock %}
+{% block title %}Transferencia Bancaria | SGPQAA{% endblock %}
 
 {% block body %}
 <main class="auth-shell">
     <section class="auth-panel">
         <div class="auth-intro">
-            <p class="eyebrow">Pagamento simulado</p>
-            <h1>Confirmar pagamento da quota.</h1>
-            <p class="lead">Esta operacao nao processa dinheiro real. Ela simula o pagamento e envia o registo para validacao do tesoureiro.</p>
+            <p class="eyebrow">Transferencia bancaria</p>
+            <h1>Enviar comprovante de pagamento.</h1>
+            <p class="lead">O associado faz o pagamento fora do sistema e depois envia o comprovante para que o tesoureiro possa validar e marcar a quota como paga.</p>
             <div class="payment-summary">
                 <p><strong>Viatura:</strong> {{ quota.vehicle.plate_number }}</p>
                 <p><strong>Mes:</strong> {{ quota.reference_month|date:"m/Y" }}</p>
@@ -17,9 +17,9 @@
             </div>
         </div>
 
-        <form method="post" class="auth-form">
+        <form method="post" enctype="multipart/form-data" class="auth-form">
             {% csrf_token %}
-            <h2>Dados da simulacao</h2>
+            <h2>Submeter comprovante</h2>
             {% if form.non_field_errors %}
                 <div class="form-error">{{ form.non_field_errors }}</div>
             {% endif %}
@@ -32,7 +32,7 @@
                     {% endif %}
                 </label>
             {% endfor %}
-            <button type="submit" class="button button-primary button-full">Enviar para validacao</button>
+            <button type="submit" class="button button-primary button-full">Enviar comprovante</button>
             <a class="button button-secondary button-full" href="{% url 'portal:quotas' %}">Cancelar</a>
         </form>
     </section>

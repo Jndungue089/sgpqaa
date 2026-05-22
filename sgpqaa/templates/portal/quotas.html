@@ -7,8 +7,8 @@
     <section class="dashboard-header">
         <div>
             <p class="eyebrow">Quotas mensais</p>
-            <h1>Acompanhar quotas e pagamentos.</h1>
-            <p class="lead">Veja as quotas geradas a partir das suas viaturas e simule o pagamento quando estiver disponivel.</p>
+            <h1>Acompanhar quotas e submeter comprovativos.</h1>
+            <p class="lead">Veja as quotas geradas a partir das suas viaturas e envie o comprovante de transferencia bancaria quando o pagamento for feito.</p>
         </div>
         <div class="dashboard-actions">
             <a class="button button-secondary" href="{% url 'portal:dashboard' %}">Voltar ao dashboard</a>
@@ -30,7 +30,7 @@
                         <span class="vehicle-status">{{ quota.get_status_display }}</span>
                     </div>
                     {% if quota.status == 'pending' or quota.status == 'overdue' %}
-                        <a class="button button-primary" href="{% url 'portal:simulate_payment' quota.id %}">Simular pagamento</a>
+                        <a class="button button-primary" href="{% url 'portal:simulate_payment' quota.id %}">Submeter transferencia</a>
                     {% else %}
                         <span class="quota-note">Acompanhe a situacao no painel.</span>
                     {% endif %}

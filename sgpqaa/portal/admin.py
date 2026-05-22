@@ -21,6 +21,7 @@ class VehicleAdmin(admin.ModelAdmin):
 class QuotaConfigAdmin(admin.ModelAdmin):
     list_display = ('amount', 'late_fee_percentage', 'effective_from', 'is_active')
     list_filter = ('is_active',)
+    ordering = ('-effective_from',)
 
 
 @admin.register(MonthlyQuota)
@@ -35,5 +36,3 @@ class PaymentRecordAdmin(admin.ModelAdmin):
     list_display = ('quota', 'method', 'status', 'amount_paid', 'payment_date')
     list_filter = ('method', 'status')
     search_fields = ('quota__vehicle__plate_number', 'simulated_reference')
-
-# Register your models here.
