@@ -19,7 +19,7 @@ class HomePageTests(TestCase):
         response = self.client.get('/rota-inexistente/')
 
         self.assertEqual(response.status_code, 404)
-        self.assertContains(response, 'Esta pagina nao foi encontrada')
+        self.assertContains(response, 'Esta pagina nao foi encontrada', status_code=404)
 
 
 class AuthenticationFlowTests(TestCase):
@@ -62,7 +62,7 @@ class AuthenticationFlowTests(TestCase):
         response = self.client.get(reverse('portal:session_expired'))
 
         self.assertEqual(response.status_code, 401)
-        self.assertContains(response, 'A sua sessao terminou')
+        self.assertContains(response, 'A sua sessao terminou', status_code=401)
 
     def test_superuser_is_redirected_to_django_admin(self):
         user = User.objects.create_superuser(username='rootadmin', email='root@example.com', password='SenhaForte#2026')

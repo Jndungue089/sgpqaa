@@ -2321,12 +2321,3 @@ Decisao:
 Estas melhorias foram feitas para aproximar o sistema dos requisitos do roadmap e melhorar a
 experiencia de uso. O objectivo foi deixar o sistema mais completo tanto no negocio como no
 comportamento visual e navegacional.
-
-## 15. Proximos passos previstos
-
-Nas proximas etapas, vamos construir:
-
-- recibo
-- historico de pagamentos
-- debitos e multas por atraso
-- relatorios
