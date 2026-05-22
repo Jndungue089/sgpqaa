@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | SGPQAA{% endblock %}
+
+{% block body %}
+<main class="page-shell">
+    <section class="dashboard-header">
+        <div>
+            <p class="eyebrow">Area do associado</p>
+            <h1>Bem-vindo, {{ request.user.first_name|default:request.user.username }}.</h1>
+            <p class="lead">Esta e a sua area inicial no sistema. Aqui vamos centralizar os seus dados, viaturas e pagamentos.</p>
+        </div>
+        <div class="dashboard-actions">
+            <a class="button button-secondary" href="{% url 'portal:home' %}">Ver landing page</a>
+            <a class="button button-primary" href="{% url 'portal:logout' %}">Terminar sessao</a>
+        </div>
+    </section>
+
+    <section class="info-strip">
+        <article>
+            <h3>Perfil</h3>
+            <p>{{ profile.member_number }} - {{ profile.get_role_display }}</p>
+        </article>
+        <article>
+            <h3>Contacto</h3>
+            <p>{{ profile.phone|default:"Sem telefone registado" }}</p>
+        </article>
+        <article>
+            <h3>Staff</h3>
+            <p>{{ profile.staff_name|default:"Sem staff definido" }}</p>
+        </article>
+    </section>
+
+    <section class="roadmap-grid dashboard-grid">
+        <article>
+            <h3>{{ vehicles_count }}</h3>
+            <p>viaturas registadas</p>
+        </article>
+        <article>
+            <h3>{{ quotas_count }}</h3>
+            <p>quotas ligadas ao seu perfil</p>
+        </article>
+        <article>
+            <h3>{{ payments_count }}</h3>
+            <p>pagamentos registados</p>
+        </article>
+        <article>
+            <h3>Proximo passo</h3>
+            <p>ligar o registo de viaturas, geracao de quotas e simulacao de pagamento.</p>
+        </article>
+    </section>
+</main>
+{% endblock %}

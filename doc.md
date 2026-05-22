@@ -54,6 +54,92 @@ Variaveis previstas para a ligacao final:
 - `MYSQL_HOST`
 - `MYSQL_PORT`
 
+### 3.2.1 O que e um ficheiro `.env`
+
+Um ficheiro `.env` e um ficheiro simples de texto onde guardamos configuracoes do sistema
+em formato `NOME=valor`.
+
+Exemplo:
+
+```text
+MYSQL_DATABASE=sgpqaa
+MYSQL_USER=root
+MYSQL_PASSWORD=uma_senha_aqui
+MYSQL_HOST=127.0.0.1
+MYSQL_PORT=3306
+```
+
+Ele nao e uma base de dados.
+Ele nao e codigo Python.
+Ele e apenas um local organizado para guardar configuracoes do ambiente.
+
+### 3.2.2 Para que serve o `.env`
+
+O `.env` serve para separar:
+
+- o codigo do sistema
+- as configuracoes do ambiente
+- dados sensiveis, como senhas
+
+Isto e util porque o mesmo sistema pode funcionar em ambientes diferentes.
+
+Exemplo:
+
+- no computador do programador, a senha da base pode ser uma
+- no computador da escola, a senha pode ser outra
+- num servidor futuro, os dados podem ser diferentes outra vez
+
+Se essas informacoes ficassem escritas directamente no codigo, seria mais dificil mudar,
+mais inseguro e menos profissional.
+
+### 3.2.3 Porque usamos `.env` neste projecto
+
+Neste projecto usamos `.env` por tres motivos principais:
+
+1. Para nao escrever a senha do MySQL directamente no codigo-fonte.
+2. Para permitir mudar a configuracao da base sem alterar a logica do sistema.
+3. Para aproximar o projecto de uma pratica real de desenvolvimento profissional.
+
+### 3.2.4 Quando usar um `.env`
+
+Um `.env` deve ser usado quando o sistema tem configuracoes que podem mudar de um ambiente
+para outro.
+
+Exemplos comuns:
+
+- nome da base de dados
+- utilizador da base de dados
+- senha da base de dados
+- endereco do servidor
+- chaves secretas
+- modo de debug
+
+### 3.2.5 Quando nao faz sentido usar `.env`
+
+Nem tudo precisa ficar no `.env`.
+
+Informacoes que fazem parte da logica permanente do sistema podem ficar no codigo.
+
+Exemplos:
+
+- nome das tabelas
+- regras de negocio
+- nomes das classes
+- campos dos modelos
+
+Ou seja:
+
+- configuracao variavel vai para o `.env`
+- estrutura e comportamento do sistema ficam no codigo
+
+Preenchimento local actual:
+
+- `MYSQL_DATABASE=sgpqaa`
+- `MYSQL_USER=root`
+- `MYSQL_PASSWORD` definida localmente no ficheiro `.env`
+- `MYSQL_HOST=127.0.0.1`
+- `MYSQL_PORT=3306`
+
 ### 3.3 Pagamentos
 
 Nao teremos integracao real com Multicaixa ou outro gateway.
@@ -64,6 +150,198 @@ Em vez disso, vamos simular muito bem o processo, com:
 - validacao por Tesoureiro
 - estado do pagamento
 - emissao de recibo numa fase seguinte
+
+### 3.4 Autenticacao
+
+Autenticacao e o processo de confirmar a identidade de quem entra no sistema.
+
+Em linguagem simples:
+
+- o utilizador diz quem e
+- o sistema verifica se isso e verdade
+- se estiver certo, o sistema permite a entrada
+
+Exemplo pratico:
+
+- o utilizador escreve nome de utilizador e palavra-passe
+- o sistema compara esses dados com o que esta guardado na base de dados
+- se os dados coincidirem, o login e aceite
+
+### 3.4.1 Diferenca entre autenticacao e autorizacao
+
+Estas duas ideias costumam ser confundidas, mas nao sao a mesma coisa.
+
+#### Autenticacao
+
+Responde a pergunta:
+
+"Quem e esta pessoa?"
+
+Exemplo:
+
+- esta pessoa e realmente o utilizador `ana`
+
+#### Autorizacao
+
+Responde a pergunta:
+
+"O que esta pessoa pode fazer dentro do sistema?"
+
+Exemplo:
+
+- um associado pode ver as suas quotas
+- um tesoureiro pode validar pagamentos
+- um administrador pode gerir membros e configuracoes
+
+Ou seja:
+
+- autenticacao confirma identidade
+- autorizacao controla permissoes
+
+### 3.4.2 O que vamos usar neste projecto
+
+Neste projecto vamos usar a autenticacao nativa do Django.
+
+Isso significa que o Django vai tratar:
+
+- criacao de utilizadores
+- validacao da palavra-passe
+- criacao de sessao apos login
+- encerramento da sessao no logout
+- proteccao de paginas que exigem login
+
+Esta foi a escolha porque:
+
+- e segura para um projecto web escolar
+- ja vem pronta no Django
+- e facil de explicar
+- reduz a probabilidade de erro
+
+### 3.4.3 Como o login funciona no nosso sistema
+
+O fluxo previsto e este:
+
+1. O utilizador abre a pagina de login.
+2. Digita o nome de utilizador e a palavra-passe.
+3. O Django verifica se esse utilizador existe.
+4. O Django verifica se a palavra-passe esta correcta.
+5. Se estiver tudo certo, o sistema cria uma sessao.
+6. Enquanto a sessao existir, o utilizador pode entrar nas paginas protegidas sem fazer login novamente.
+
+### 3.4.4 O que e uma sessao
+
+Uma sessao e a forma que o servidor usa para "lembrar" que aquele utilizador ja entrou.
+
+Sem sessao, o sistema esqueceria o utilizador a cada clique.
+
+Com a sessao:
+
+- o utilizador faz login uma vez
+- o servidor guarda essa informacao
+- nas paginas seguintes, o sistema reconhece que ele continua autenticado
+
+### 3.4.5 Como a sessao funciona tecnicamente
+
+De forma simplificada:
+
+1. O utilizador faz login com sucesso.
+2. O servidor cria um identificador de sessao.
+3. Esse identificador fica associado ao utilizador no servidor.
+4. O navegador passa a enviar esse identificador em cada pedido seguinte.
+5. O servidor reconhece o identificador e sabe quem e o utilizador.
+
+### 3.4.6 O que e logout
+
+Logout e o processo de terminar a sessao.
+
+Quando o utilizador faz logout:
+
+- a sessao deixa de valer
+- o sistema deixa de o reconhecer como autenticado
+- as paginas protegidas voltam a exigir login
+
+### 3.4.7 Como guardamos a palavra-passe
+
+O sistema nao deve guardar a palavra-passe em texto normal.
+
+Em vez disso, o Django guarda uma versao protegida da palavra-passe chamada **hash**.
+
+Isto significa:
+
+- o sistema nao guarda a senha original visivel
+- o sistema guarda um valor matematicamente transformado
+- quando o utilizador tenta entrar, o Django compara a senha digitada com esse valor protegido
+
+Esta e uma medida de seguranca essencial.
+
+### 3.4.8 O que e JWT
+
+JWT significa **JSON Web Token**.
+
+E uma forma de autenticacao muito usada em APIs e sistemas onde o frontend e separado do backend.
+
+Em vez de usar uma sessao tradicional no servidor:
+
+- o sistema gera um token
+- esse token vai para o cliente
+- o cliente envia esse token nos pedidos seguintes
+- o servidor valida o token para reconhecer o utilizador
+
+### 3.4.9 Quando o JWT faz sentido
+
+JWT costuma fazer mais sentido quando temos cenarios como:
+
+- uma API consumida por aplicacao mobile
+- frontend em React, Vue ou Angular separado do backend
+- varios servicos a falar entre si
+- autenticacao sem sessao tradicional no servidor
+
+### 3.4.10 Porque nao vamos usar JWT agora
+
+Neste momento, o nosso projecto e um sistema web tradicional em Django, com:
+
+- backend e frontend no mesmo projecto
+- templates renderizados pelo servidor
+- login classico por formulario
+- necessidade de simplicidade para a defesa
+
+Por isso, usar JWT agora seria pior para este contexto, porque:
+
+- aumentaria a complexidade
+- exigiria mais explicacao tecnica
+- nao traria beneficio real nesta fase
+- sairia do caminho natural do Django para aplicacoes web deste tipo
+
+### 3.4.11 Decisao tomada sobre autenticacao
+
+Decidimos usar:
+
+- autenticacao nativa do Django
+- sessao tradicional baseada no servidor
+- tabela `auth_user` do Django
+- tabela `django_session` para controlo de sessoes
+
+E decidimos nao usar, por agora:
+
+- JWT
+- OAuth
+- login social
+- autenticacao por telemovel
+
+### 3.4.12 Porque esta decisao foi a melhor para o projecto
+
+Esta decisao foi tomada porque ela oferece equilibrio entre:
+
+- seguranca
+- simplicidade
+- clareza para a banca
+- rapidez de desenvolvimento
+- organizacao do codigo
+
+Em resumo:
+
+o sistema fica suficientemente profissional para a apresentacao e, ao mesmo tempo,
+continua facil de explicar e manter.
 
 ## 4. Estrutura inicial criada
 
@@ -120,7 +398,508 @@ Nesta tabela vamos registar:
 - referencia simulada
 - estado da validacao
 
-## 6. Landing page inicial
+### 5.6 Porque estes modelos foram escolhidos
+
+Os modelos nao foram escolhidos por acaso.
+Eles foram pensados para representar o funcionamento real do processo de quotas.
+
+#### Decisao 1: separar `User` e `MemberProfile`
+
+O Django ja traz uma tabela chamada `auth_user`.
+Ela guarda dados gerais do utilizador, como:
+
+- username
+- password
+- email
+
+Mas o nosso sistema precisa de mais informacoes especificas da associacao, como:
+
+- numero de associado
+- BI
+- staff
+- papel no sistema
+
+Por isso criamos `MemberProfile`.
+
+Porque esta decisao foi boa:
+
+- aproveita o sistema de autenticacao do Django
+- evita recriar uma tabela de login do zero
+- separa dados de acesso dos dados da associacao
+
+#### Decisao 2: criar uma tabela propria para viaturas
+
+Uma viatura nao podia ficar misturada com os dados do associado porque:
+
+- um associado pode ter mais de uma viatura
+- cada viatura tem vida propria dentro do sistema
+- as quotas serao geradas por viatura, nao apenas por pessoa
+
+Por isso a tabela `Vehicle` ficou separada.
+
+#### Decisao 3: criar `QuotaConfig`
+
+O valor da quota pode mudar com o tempo.
+Se guardassemos esse valor apenas num sitio fixo, perderiamos historico.
+
+Com `QuotaConfig`, podemos:
+
+- saber quanto valia a quota numa determinada epoca
+- mudar o valor sem destruir registos antigos
+- preparar o sistema para administracao futura
+
+#### Decisao 4: criar `MonthlyQuota`
+
+A quota mensal precisava de existir como entidade propria porque o sistema tem de acompanhar:
+
+- o mes a que a quota pertence
+- a data de vencimento
+- o valor devido
+- o estado da quota
+
+Se o pagamento fosse ligado directamente a uma viatura sem essa tabela intermediaria,
+ficaria muito mais dificil controlar historico mensal.
+
+#### Decisao 5: criar `PaymentRecord`
+
+O pagamento tambem ficou numa tabela separada porque uma quota pode passar por etapas:
+
+- foi gerada
+- foi paga
+- aguarda validacao
+- foi validada ou rejeitada
+
+Separar a quota do pagamento deixa o sistema mais claro e mais proximo de um processo real.
+
+## 6. Tabelas do sistema e estrutura do MER
+
+Nesta fase, o sistema usa tabelas automaticas do Django e tabelas do nosso dominio.
+
+### 6.0 O que e um MER
+
+MER significa **Modelo Entidade-Relacionamento**.
+
+E uma forma de desenhar e planear a base de dados antes, ou durante, a implementacao.
+
+Ele responde a perguntas como:
+
+- quais sao as entidades do sistema?
+- que dados cada entidade guarda?
+- como essas entidades se ligam umas as outras?
+
+No nosso caso, as entidades principais sao:
+
+- utilizador
+- perfil de associado
+- viatura
+- configuracao de quota
+- quota mensal
+- pagamento
+
+### 6.0.1 O que e uma entidade
+
+Uma entidade e algo importante do negocio que precisa ser guardado no sistema.
+
+Exemplos no nosso projecto:
+
+- um associado
+- uma viatura
+- uma quota
+- um pagamento
+
+Na pratica, quase sempre uma entidade vira uma tabela na base de dados.
+
+### 6.0.2 O que e um atributo
+
+Atributo e cada informacao guardada dentro de uma entidade.
+
+Exemplo:
+
+Na entidade `Vehicle`, alguns atributos sao:
+
+- matricula
+- modelo
+- ano
+- cor
+
+Na pratica, os atributos viram colunas da tabela.
+
+### 6.0.3 O que e um relacionamento
+
+Relacionamento e a ligacao entre entidades.
+
+Exemplo:
+
+- um associado tem viaturas
+- uma viatura tem quotas
+- uma quota tem pagamentos
+
+### 6.0.4 Porque fazer o MER antes ou durante o desenvolvimento
+
+O MER ajuda a evitar varios problemas:
+
+- repeticao desnecessaria de dados
+- tabelas mal divididas
+- confusao nas relacoes
+- dificuldade para fazer consultas
+- historico incompleto
+
+Em resumo, o MER ajuda a base de dados a nascer organizada.
+
+### 6.0.5 O que e database design
+
+Database design, ou desenho da base de dados, e o processo de decidir:
+
+- que tabelas vao existir
+- que campos cada tabela tera
+- quais campos sao obrigatorios
+- quais campos devem ser unicos
+- como as tabelas se relacionam
+- que regras garantem consistencia dos dados
+
+Ou seja, e o plano estrutural da base de dados.
+
+Se o frontend e a parte que o utilizador ve, o database design e a fundacao invisivel
+que sustenta o sistema inteiro.
+
+### 6.0.6 Como funciona o desenho da base de dados neste projecto
+
+O raciocinio seguido foi este:
+
+1. Identificar os elementos reais do problema.
+2. Transformar esses elementos em entidades.
+3. Separar cada entidade numa tabela propria.
+4. Ligar as tabelas por chaves estrangeiras.
+5. Evitar mistura de responsabilidades.
+6. Garantir historico e rastreabilidade.
+
+#### Exemplo de aplicacao pratica
+
+Pergunta:
+
+"Como controlar o pagamento de quota de um carro num certo mes?"
+
+Resposta de desenho:
+
+- o associado fica numa tabela
+- a viatura fica noutra
+- a quota mensal fica noutra
+- o pagamento fica noutra
+
+Assim, o sistema consegue guardar o processo completo sem confundir os dados.
+
+### 6.1 Tabelas automaticas do Django
+
+O Django cria algumas tabelas de apoio ao funcionamento interno do sistema:
+
+- `auth_user`: guarda os utilizadores do sistema
+- `auth_group`: grupos de permissao
+- `auth_permission`: permissoes
+- `django_admin_log`: historico do painel admin
+- `django_content_type`: controlo interno dos modelos
+- `django_session`: sessoes activas
+- `django_migrations`: registo das migrations aplicadas
+
+Estas tabelas sao normais em sistemas Django e ajudam na autenticacao, seguranca e administracao.
+
+### 6.2 Tabelas do negocio
+
+#### Tabela `portal_memberprofile`
+
+Representa o perfil funcional do utilizador dentro da associacao.
+
+Campos principais:
+
+- `id`
+- `user_id`
+- `member_number`
+- `phone`
+- `identity_card`
+- `staff_name`
+- `role`
+- `is_active_member`
+- `created_at`
+- `updated_at`
+
+#### Tabela `portal_vehicle`
+
+Representa cada viatura registada por um associado.
+
+Campos principais:
+
+- `id`
+- `owner_id`
+- `plate_number`
+- `model`
+- `year`
+- `color`
+- `is_active`
+- `created_at`
+- `updated_at`
+
+#### Tabela `portal_quotaconfig`
+
+Representa a configuracao do valor das quotas.
+
+Campos principais:
+
+- `id`
+- `amount`
+- `late_fee_percentage`
+- `effective_from`
+- `is_active`
+- `created_at`
+- `updated_at`
+
+#### Tabela `portal_monthlyquota`
+
+Representa a quota mensal gerada para uma viatura.
+
+Campos principais:
+
+- `id`
+- `vehicle_id`
+- `reference_month`
+- `due_date`
+- `amount_due`
+- `status`
+- `generated_automatically`
+- `created_at`
+- `updated_at`
+
+#### Tabela `portal_paymentrecord`
+
+Representa o pagamento registado para uma quota.
+
+Campos principais:
+
+- `id`
+- `quota_id`
+- `method`
+- `status`
+- `amount_paid`
+- `payment_date`
+- `simulated_reference`
+- `validated_by_id`
+- `validated_at`
+- `notes`
+- `created_at`
+- `updated_at`
+
+### 6.3 Relacionamentos do MER
+
+O MER, ou Modelo Entidade-Relacionamento, mostra como as entidades do sistema se ligam.
+
+### 6.3.1 O que significa `1:1`
+
+`1:1` significa **um para um**.
+
+Quer dizer que um registo de uma tabela se liga a apenas um registo da outra tabela,
+e vice-versa.
+
+Exemplo no nosso sistema:
+
+- um `auth_user` tem um `MemberProfile`
+- um `MemberProfile` pertence a um `auth_user`
+
+Isto faz sentido porque cada conta de acesso deve representar um unico perfil funcional.
+
+### 6.3.2 O que significa `1:N`
+
+`1:N` significa **um para muitos**.
+
+Quer dizer que um registo de uma tabela pode estar ligado a varios registos de outra tabela.
+
+Exemplo no nosso sistema:
+
+- um associado pode ter varias viaturas
+- uma viatura pode ter varias quotas mensais
+- uma quota pode ter varios registos de pagamento
+
+### 6.3.3 O que significa `N:1`
+
+`N:1` significa **muitos para um**.
+
+Na pratica, e a mesma relacao vista do lado contrario.
+
+Exemplo:
+
+- se dissermos "um associado tem varias viaturas", estamos a olhar como `1:N`
+- se dissermos "varias viaturas pertencem a um associado", estamos a olhar como `N:1`
+
+Portanto:
+
+- `1:N` e `N:1` representam a mesma ligacao
+- a diferenca esta apenas no ponto de vista de quem esta a explicar
+
+### 6.3.4 Porque estes relacionamentos foram escolhidos
+
+Os relacionamentos foram escolhidos para representar o funcionamento real do negocio.
+
+Exemplos:
+
+- um associado realmente pode ter varias viaturas
+- uma viatura realmente acumula varias quotas ao longo dos meses
+- uma quota pode ter registos ligados ao processo de pagamento
+
+Se usassemos os relacionamentos errados:
+
+- perderiamos historico
+- duplicariamos dados
+- dificultariamos consultas e relatorios
+- o sistema ficaria menos fiel a realidade
+
+#### Relacao 1: Utilizador e Perfil
+
+- Um registo em `auth_user` tem um `MemberProfile`
+- Um `MemberProfile` pertence a um unico `auth_user`
+
+Isto e uma relacao **um para um (1:1)**.
+
+#### Relacao 2: Perfil e Viatura
+
+- Um `MemberProfile` pode ter varias viaturas
+- Cada `Vehicle` pertence a um unico `MemberProfile`
+
+Isto e uma relacao **um para muitos (1:N)**.
+
+#### Relacao 3: Viatura e Quota Mensal
+
+- Uma `Vehicle` pode ter varias `MonthlyQuota`
+- Cada `MonthlyQuota` pertence a uma unica `Vehicle`
+
+Isto e uma relacao **um para muitos (1:N)**.
+
+#### Relacao 4: Quota Mensal e Pagamento
+
+- Uma `MonthlyQuota` pode ter varios `PaymentRecord`
+- Cada `PaymentRecord` pertence a uma unica `MonthlyQuota`
+
+Isto e uma relacao **um para muitos (1:N)**.
+
+#### Relacao 5: Tesoureiro e Validacao
+
+- Um `MemberProfile` com papel de Tesoureiro pode validar varios pagamentos
+- Um `PaymentRecord` pode ser validado por um unico `MemberProfile`
+
+Isto e uma relacao **um para muitos (1:N)**.
+
+### 6.4 Leitura simples do MER
+
+Em linguagem muito simples, o fluxo dos dados e este:
+
+1. O utilizador entra no sistema.
+2. O sistema associa esse utilizador a um perfil de associado.
+3. O associado regista uma ou mais viaturas.
+4. Cada viatura recebe quotas mensais.
+5. Cada quota pode receber um pagamento.
+6. O tesoureiro pode validar esse pagamento.
+
+### 6.5 Desenho textual do MER
+
+```text
+auth_user
+   1
+   |
+   | 1:1
+   |
+portal_memberprofile
+   1
+   |
+   | 1:N
+   |
+portal_vehicle
+   1
+   |
+   | 1:N
+   |
+portal_monthlyquota
+   1
+   |
+   | 1:N
+   |
+portal_paymentrecord
+
+portal_memberprofile
+   1
+   |
+   | 1:N (valida)
+   |
+portal_paymentrecord
+```
+
+### 6.6 Regras de consistencia adoptadas
+
+Ao desenhar a base de dados, tambem tomamos algumas decisoes para evitar erros.
+
+#### Regra 1: campos unicos
+
+Alguns campos foram definidos como unicos, por exemplo:
+
+- `member_number`
+- `plate_number`
+
+Porque:
+
+- nao deve existir dois associados com o mesmo numero
+- nao deve existir duas viaturas com a mesma matricula
+
+#### Regra 2: proteccao de relacoes importantes
+
+Em varios pontos usamos proteccao para evitar apagar dados importantes por engano.
+
+Exemplo:
+
+- nao queremos apagar uma viatura se ela ja tiver quotas
+- nao queremos apagar um associado se ele tiver historico que precisa ser preservado
+
+Isto ajuda a manter integridade historica.
+
+#### Regra 3: historico temporal
+
+Quase todas as tabelas do negocio têm:
+
+- `created_at`
+- `updated_at`
+
+Isto permite saber:
+
+- quando algo foi criado
+- quando algo foi alterado
+
+Esta decisao e importante para auditoria, demonstracao e controlo.
+
+#### Regra 4: estados em vez de apagar o passado
+
+Em vez de apagar ou sobrescrever tudo, usamos estados como:
+
+- quota pendente
+- quota paga
+- quota em atraso
+- pagamento pendente
+- pagamento validado
+- pagamento rejeitado
+
+Isto foi escolhido porque um sistema financeiro precisa mostrar o caminho do processo,
+e nao apenas o resultado final.
+
+### 6.7 Porque esta estrutura e boa para o projecto
+
+Esta estrutura foi escolhida porque:
+
+- representa bem a realidade do problema
+- separa claramente cada responsabilidade
+- permite crescimento futuro
+- facilita relatorios
+- facilita a explicacao para a banca
+- reduz risco de desorganizacao nos dados
+
+Em resumo:
+
+o desenho da base de dados foi pensado para ser simples de entender, mas suficientemente
+forte para parecer um sistema real.
+
+## 7. Landing page inicial
 
 A landing page foi criada para ser a porta de entrada do sistema.
 Ela mostra:
@@ -134,7 +913,75 @@ Ela mostra:
 Esta pagina ajuda muito na apresentacao porque, antes mesmo do login, a banca consegue
 entender o que esta a ser demonstrado.
 
-## 7. Historico de alteracoes
+## 8. Etapa de autenticacao implementada
+
+Nesta etapa, passamos a ter um fluxo real de entrada no sistema.
+
+### 8.1 O que foi implementado
+
+Foram criadas as seguintes partes:
+
+- pagina de login
+- pagina de registo
+- criacao de utilizador no sistema
+- criacao automatica do `MemberProfile`
+- dashboard inicial protegido
+- logout
+- mensagens de sucesso e erro
+
+### 8.2 Como o registo funciona
+
+Quando um novo utilizador preenche o formulario de registo:
+
+1. o sistema valida os dados
+2. verifica se o username ja existe
+3. verifica se o email ja existe
+4. verifica se o numero de associado ja existe
+5. valida a palavra-passe
+6. cria o utilizador em `auth_user`
+7. cria o perfil correspondente em `portal_memberprofile`
+8. inicia a sessao automaticamente
+
+### 8.3 Como o login funciona
+
+Quando o utilizador preenche o login:
+
+1. o sistema recebe username e palavra-passe
+2. o Django tenta autenticar
+3. se os dados estiverem certos, a sessao e criada
+4. o utilizador e redireccionado para o dashboard
+
+### 8.4 Como a proteccao de paginas funciona
+
+Algumas paginas nao devem ser abertas por qualquer pessoa.
+
+Por isso, usamos proteccao de login no dashboard.
+
+Significa que:
+
+- se o utilizador estiver autenticado, entra normalmente
+- se nao estiver autenticado, o sistema bloqueia o acesso directo
+
+### 8.5 Porque comecamos com este modelo
+
+Comecamos com autenticacao por username e palavra-passe porque:
+
+- e a forma mais clara de demonstrar login
+- encaixa bem no Django
+- e suficiente para a fase actual
+- sera facil evoluir depois para controlo por perfil
+
+### 8.6 O que ainda vamos ligar a esta etapa
+
+Nos proximos passos, esta autenticacao sera ligada a:
+
+- registo de viaturas do associado autenticado
+- consulta de quotas do associado autenticado
+- simulacao de pagamento do associado autenticado
+- validacao feita pelo tesoureiro autenticado
+- administracao feita pelo utilizador com perfil administrador
+
+## 9. Historico de alteracoes
 
 ### Alteracao 1
 
@@ -186,7 +1033,72 @@ Decisao:
 A pagina inicial deve parecer uma apresentacao simples do produto, como uma landing page
 que vende a ideia do sistema, e nao uma pagina a explicar arquitetura ou desenvolvimento.
 
-## 8. Proximos passos previstos
+### Alteracao 4
+
+Data: 22 de Maio de 2026
+
+Foi feito:
+
+- preparacao de leitura automatica de variaveis de ambiente a partir de `.env`
+- definicao do apontamento local para MySQL
+- proteccao do ficheiro `.env` no `.gitignore`
+
+Decisao:
+
+As credenciais locais da base de dados nao devem ficar escritas directamente no codigo.
+Por isso, o projecto passa a ler as configuracoes do MySQL a partir de um ficheiro `.env`
+na raiz do workspace.
+
+### Alteracao 5
+
+Data: 22 de Maio de 2026
+
+Foi feito:
+
+- criacao da base de dados `sgpqaa` no MySQL local
+- configuracao real do projecto para usar MySQL com `PyMySQL`
+- detalhamento das tabelas, entidades e relacionamentos no documento
+
+Decisao:
+
+Foi usado `PyMySQL` no lugar de `mysqlclient` porque o ambiente local nao tinha os headers
+necessarios para compilar o driver nativo com Python 3.14. Para este projecto, `PyMySQL`
+resolve bem e simplifica o desenvolvimento.
+
+### Alteracao 6
+
+Data: 22 de Maio de 2026
+
+Foi feito:
+
+- reforco da documentacao sobre o ficheiro `.env`
+- explicacao detalhada do que e um MER
+- explicacao dos relacionamentos `1:1`, `1:N` e `N:1`
+- aprofundamento do desenho da base de dados e das decisoes tomadas
+
+Decisao:
+
+Esta documentacao passou a ser mais explicita porque a avaliacao sera feita por pessoas
+leigas. Por isso, a prioridade aqui nao e resumir, mas explicar com clareza pedagogica.
+
+### Alteracao 7
+
+Data: 22 de Maio de 2026
+
+Foi feito:
+
+- implementacao do fluxo inicial de autenticacao
+- criacao das paginas de login, registo, dashboard e logout
+- criacao automatica do perfil do associado apos registo
+- explicacao detalhada no documento sobre autenticacao, sessao e JWT
+
+Decisao:
+
+Foi adoptada autenticacao classica do Django com sessao no servidor. JWT ficou apenas como
+conceito documentado, mas nao como tecnologia usada nesta fase, por ser desnecessario para
+o tipo de aplicacao que estamos a construir agora.
+
+## 10. Proximos passos previstos
 
 Nas proximas etapas, vamos construir:
 

@@ -13,7 +13,7 @@
                 num unico lugar, com uma experiencia clara para toda a associacao.
             </p>
             <div class="hero-actions">
-                <a class="button button-primary" href="/admin/">Entrar no sistema</a>
+                <a class="button button-primary" href="{% url 'portal:login' %}">Entrar no sistema</a>
                 <a class="button button-secondary" href="#beneficios">Ver beneficios</a>
             </div>
         </div>
@@ -77,7 +77,7 @@
     <section class="cta-panel">
         <p class="eyebrow">SGPQAA</p>
         <h2>Menos processos manuais. Mais controlo para a associacao.</h2>
-        <a class="button button-primary" href="/admin/">Aceder ao painel</a>
+        <a class="button button-primary" href="{% url 'portal:register' %}">Criar conta</a>
     </section>
 </main>
 {% endblock %}

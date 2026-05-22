@@ -3,6 +3,26 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+
+def load_env_file() -> None:
+    env_candidates = [
+        BASE_DIR.parent / '.env',
+        BASE_DIR / '.env',
+    ]
+    for env_path in env_candidates:
+        if not env_path.exists():
+            continue
+        for raw_line in env_path.read_text(encoding='utf-8').splitlines():
+            line = raw_line.strip()
+            if not line or line.startswith('#') or '=' not in line:
+                continue
+            key, value = line.split('=', 1)
+            os.environ.setdefault(key.strip(), value.strip())
+        break
+
+
+load_env_file()
+
 SECRET_KEY = os.getenv(
     'DJANGO_SECRET_KEY',
     'django-insecure-r7j#5$vxswgwzc@pt-1rzv8enmljaw82f@3=dv-!^b9sdhifhy',
@@ -96,7 +116,8 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-LOGIN_REDIRECT_URL = 'portal:home'
+LOGIN_URL = 'portal:login'
+LOGIN_REDIRECT_URL = 'portal:dashboard'
 LOGOUT_REDIRECT_URL = 'portal:home'
 
 ASSOCIATION_NAME = 'ANATA'
