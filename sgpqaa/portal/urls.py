@@ -10,6 +10,7 @@ urlpatterns = [
     path('registo/', views.register_view, name='register'),
     path('dashboard/', views.dashboard, name='dashboard'),
     path('tesouraria/', views.treasurer_dashboard, name='treasurer_dashboard'),
+    path('tesouraria/relatorios/', views.treasury_reports, name='treasury_reports'),
     path('viaturas/', views.vehicle_list_create, name='vehicles'),
     path('viaturas/<int:vehicle_id>/desactivar/', views.vehicle_deactivate, name='vehicle_deactivate'),
     path('quotas/', views.quota_list, name='quotas'),

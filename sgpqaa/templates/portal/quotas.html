@@ -44,6 +44,7 @@
                 </article>
             {% endfor %}
         </div>
+        {% include "portal/pagination.html" with page_obj=page_obj %}
     </section>
 </main>
 {% endblock %}

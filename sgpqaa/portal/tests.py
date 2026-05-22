@@ -124,7 +124,7 @@ class QuotaAndTreasuryFlowTests(TestCase):
     def test_active_quota_config_generates_quotas_automatically(self):
         QuotaConfig.objects.create(
             amount='25000.00',
-            late_fee_percentage='0.00',
+            late_fee_percentage='10.00',
             effective_from=date(2026, 6, 10),
             is_active=True,
         )
@@ -132,6 +132,30 @@ class QuotaAndTreasuryFlowTests(TestCase):
         self.assertTrue(
             MonthlyQuota.objects.filter(vehicle=self.vehicle, reference_month=date(2026, 6, 1)).exists()
         )
+
+    def test_treasury_report_shows_overdue_quota_with_fine(self):
+        QuotaConfig.objects.create(
+            amount='25000.00',
+            late_fee_percentage='10.00',
+            effective_from=date(2026, 6, 10),
+            is_active=True,
+        )
+        quota = MonthlyQuota.objects.create(
+            vehicle=self.vehicle,
+            reference_month=date(2026, 5, 1),
+            due_date=date(2026, 5, 10),
+            amount_due='25000.00',
+            status=MonthlyQuota.Status.PENDING,
+        )
+        self.client.login(username='tesoureiro', password='SenhaForte#2026')
+
+        response = self.client.get(reverse('portal:treasury_reports'))
+
+        self.assertEqual(response.status_code, 200)
+        quota.refresh_from_db()
+        self.assertEqual(quota.status, MonthlyQuota.Status.OVERDUE)
+        self.assertContains(response, '2500,00 AOA')
+        self.assertContains(response, 'Debitos e multas por atraso')
 
     def test_treasurer_is_redirected_to_treasury_dashboard(self):
         self.client.login(username='tesoureiro', password='SenhaForte#2026')

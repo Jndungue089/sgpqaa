@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Relatorios da Tesouraria | SGPQAA{% endblock %}
+
+{% block body %}
+<main class="page-shell">
+    <section class="dashboard-header">
+        <div>
+            <p class="eyebrow">Relatorios da tesouraria</p>
+            <h1>Debitos e multas por atraso.</h1>
+            <p class="lead">Este relatorio ajuda a tesouraria a perceber quem ainda deve, que quotas estao vencidas e quanto a associacao pode cobrar em multas com base na configuracao activa.</p>
+        </div>
+        <div class="dashboard-actions">
+            <a class="button button-secondary" href="{% url 'portal:treasurer_dashboard' %}">Voltar a tesouraria</a>
+        </div>
+    </section>
+
+    <section class="info-strip">
+        <article>
+            <h3>{{ members_with_debts }}</h3>
+            <p>associados com debitos</p>
+        </article>
+        <article>
+            <h3>{{ overdue_count }}</h3>
+            <p>quotas em atraso</p>
+        </article>
+        <article>
+            <h3>{{ total_base_debt }} AOA</h3>
+            <p>valor base em aberto</p>
+        </article>
+        <article>
+            <h3>{{ total_fines }} AOA</h3>
+            <p>multas acumuladas</p>
+        </article>
+    </section>
+
+    <section class="vehicle-list-panel treasurer-panel">
+        <div class="section-heading vehicle-heading">
+            <p class="eyebrow">Resumo financeiro</p>
+            <h2>Total a cobrar</h2>
+        </div>
+        <div class="payment-summary">
+            <p><strong>Total com multas:</strong> {{ total_with_fines }} AOA</p>
+            {% if active_config %}
+                <p><strong>Percentagem de multa activa:</strong> {{ active_config.late_fee_percentage }}%</p>
+            {% else %}
+                <p><strong>Percentagem de multa activa:</strong> 0%</p>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="vehicle-list-panel treasurer-panel">
+        <div class="section-heading vehicle-heading">
+            <p class="eyebrow">Debitos detalhados</p>
+            <h2>Quotas pendentes e em atraso</h2>
+        </div>
+        <div class="vehicle-card-list">
+            {% for entry in debt_entries %}
+                <article class="vehicle-card">
+                    <div>
+                        <h3>{{ entry.quota.vehicle.owner.user.get_full_name|default:entry.quota.vehicle.owner.user.username }} - {{ entry.quota.vehicle.plate_number }}</h3>
+                        <p>{{ entry.quota.reference_month|date:"m/Y" }} | vencimento {{ entry.quota.due_date|date:"d/m/Y" }} | {{ entry.quota.get_status_display }}</p>
+                        <p>Base: {{ entry.quota.amount_due }} AOA | Multa: {{ entry.fine_amount }} AOA | Total: {{ entry.total_due }} AOA</p>
+                        {% if entry.days_overdue > 0 %}
+                            <span class="vehicle-status">{{ entry.days_overdue }} dias de atraso</span>
+                        {% else %}
+                            <span class="vehicle-status">Ainda no prazo</span>
+                        {% endif %}
+                    </div>
+                </article>
+            {% empty %}
+                <article class="vehicle-card">
+                    <div>
+                        <h3>Sem debitos em aberto</h3>
+                        <p>Neste momento nao existem quotas pendentes ou em atraso para relatar.</p>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    </section>
+</main>
+{% endblock %}

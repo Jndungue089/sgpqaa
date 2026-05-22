@@ -164,7 +164,8 @@ h3 {
 
 .stat-grid,
 .info-strip,
-.roadmap-grid {
+.roadmap-grid,
+.dashboard-top-grid {
     display: grid;
     gap: 1rem;
 }
@@ -194,8 +195,14 @@ h3 {
     margin: 1rem 0 2rem;
 }
 
+.dashboard-top-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 1rem 0 2rem;
+}
+
 .info-strip article,
-.roadmap-grid article {
+.roadmap-grid article,
+.dashboard-top-grid article {
     border-radius: 24px;
     padding: 1.5rem;
 }
@@ -452,6 +459,25 @@ h3 {
     font-weight: 600;
 }
 
+.pagination-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.pagination-status {
+    color: var(--muted);
+    font-weight: 700;
+}
+
+.button-disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
 .receipt-panel {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -518,7 +544,8 @@ h3 {
     .hero,
     .info-strip,
     .roadmap-grid,
-    .stat-grid {
+    .stat-grid,
+    .dashboard-top-grid {
         grid-template-columns: 1fr;
     }
 

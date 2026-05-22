@@ -1,16 +1,23 @@
+from decimal import Decimal
 from uuid import uuid4
 
 from django.contrib import messages
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
+from django.core.paginator import Paginator
 from django.http import HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from .forms import BankTransferProofForm, LoginForm, RegisterForm, VehicleForm
 from .models import MemberProfile, MonthlyQuota, PaymentRecord, QuotaConfig, Vehicle
-from .services import generate_quotas_from_active_config, get_active_quota_config
+from .services import (
+    build_debt_report_entries,
+    generate_quotas_from_active_config,
+    get_active_quota_config,
+    refresh_overdue_quotas,
+)
 
 
 def get_or_create_profile(user):
@@ -146,9 +153,12 @@ def quota_list(request):
     profile = get_or_create_profile(request.user)
     generate_quotas_from_active_config()
     quotas = MonthlyQuota.objects.filter(vehicle__owner=profile).select_related('vehicle')
+    paginator = Paginator(quotas, 6)
+    page_obj = paginator.get_page(request.GET.get('page'))
     context = {
         'profile': profile,
-        'quotas': quotas,
+        'page_obj': page_obj,
+        'quotas': page_obj.object_list,
     }
     return render(request, 'portal/quotas.html', context)
 
@@ -159,12 +169,15 @@ def payment_history(request):
     payments = PaymentRecord.objects.filter(
         quota__vehicle__owner=profile
     ).select_related('quota__vehicle', 'validated_by__user')
+    paginator = Paginator(payments, 6)
+    page_obj = paginator.get_page(request.GET.get('page'))
     return render(
         request,
         'portal/payment_history.html',
         {
             'profile': profile,
-            'payments': payments,
+            'page_obj': page_obj,
+            'payments': page_obj.object_list,
         },
     )
 
@@ -213,6 +226,7 @@ def treasurer_dashboard(request):
         return HttpResponseForbidden('Apenas o tesoureiro ou administrador pode aceder a esta area.')
 
     created_count = generate_quotas_from_active_config()
+    refresh_overdue_quotas()
     if created_count:
         messages.info(request, f'{created_count} novas quotas automaticas foram detectadas para a configuracao activa.')
 
@@ -225,6 +239,7 @@ def treasurer_dashboard(request):
         status__in=[MonthlyQuota.Status.PENDING, MonthlyQuota.Status.OVERDUE]
     ).select_related('vehicle__owner__user')[:8]
     active_config = get_active_quota_config()
+    overdue_quotas_total = MonthlyQuota.objects.filter(status=MonthlyQuota.Status.OVERDUE).count()
 
     context = {
         'profile': profile,
@@ -234,9 +249,40 @@ def treasurer_dashboard(request):
         'active_config': active_config,
         'vehicles_total': Vehicle.objects.filter(is_active=True).count(),
         'quotas_pending_total': MonthlyQuota.objects.filter(status=MonthlyQuota.Status.PENDING).count(),
+        'overdue_quotas_total': overdue_quotas_total,
         'payments_waiting_total': pending_payments.count(),
     }
     return render(request, 'portal/treasurer_dashboard.html', context)
+
+
+@login_required
+def treasury_reports(request):
+    profile = get_or_create_profile(request.user)
+    if not ensure_treasurer_access(profile):
+        return HttpResponseForbidden('Apenas o tesoureiro ou administrador pode aceder aos relatorios.')
+
+    refresh_overdue_quotas()
+    active_config = get_active_quota_config()
+    debt_quotas = MonthlyQuota.objects.filter(
+        status__in=[MonthlyQuota.Status.PENDING, MonthlyQuota.Status.OVERDUE]
+    ).select_related('vehicle__owner__user')
+    debt_entries = build_debt_report_entries(debt_quotas, config=active_config)
+
+    total_base_debt = sum((entry['quota'].amount_due for entry in debt_entries), start=Decimal('0.00'))
+    total_fines = sum((entry['fine_amount'] for entry in debt_entries), start=Decimal('0.00'))
+    total_with_fines = sum((entry['total_due'] for entry in debt_entries), start=Decimal('0.00'))
+
+    context = {
+        'profile': profile,
+        'active_config': active_config,
+        'debt_entries': debt_entries,
+        'members_with_debts': len({entry['quota'].vehicle.owner_id for entry in debt_entries}),
+        'total_base_debt': total_base_debt,
+        'total_fines': total_fines,
+        'total_with_fines': total_with_fines,
+        'overdue_count': sum(1 for entry in debt_entries if entry['quota'].status == MonthlyQuota.Status.OVERDUE),
+    }
+    return render(request, 'portal/treasury_reports.html', context)
 
 
 @login_required

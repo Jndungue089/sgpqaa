@@ -19,22 +19,7 @@
         </div>
     </section>
 
-    <section class="info-strip">
-        <article>
-            <h3>Perfil</h3>
-            <p>{{ profile.member_number }} - {{ profile.get_role_display }}</p>
-        </article>
-        <article>
-            <h3>Contacto</h3>
-            <p>{{ profile.phone|default:"Sem telefone registado" }}</p>
-        </article>
-        <article>
-            <h3>Estado</h3>
-            <p>{% if profile.is_active_member %}Associado activo{% else %}Associado inactivo{% endif %}</p>
-        </article>
-    </section>
-
-    <section class="roadmap-grid dashboard-grid">
+    <section class="dashboard-top-grid">
         <article>
             <h3>{{ vehicles_count }}</h3>
             <p>viaturas registadas</p>
@@ -49,11 +34,22 @@
         </article>
         <article>
             <h3>{{ pending_quotas_count }}</h3>
-            <p>quotas pendentes ou em atraso</p>
+            <p>{{ awaiting_validation_count }} quotas aguardam validacao da tesouraria</p>
+        </article>
+    </section>
+
+    <section class="info-strip">
+        <article>
+            <h3>Perfil</h3>
+            <p>{{ profile.member_number }} - {{ profile.get_role_display }}</p>
         </article>
         <article>
-            <h3>{{ awaiting_validation_count }}</h3>
-            <p>quotas a aguardar validacao da tesouraria</p>
+            <h3>Contacto</h3>
+            <p>{{ profile.phone|default:"Sem telefone registado" }}</p>
+        </article>
+        <article>
+            <h3>Estado</h3>
+            <p>{% if profile.is_active_member %}Associado activo{% else %}Associado inactivo{% endif %}</p>
         </article>
     </section>
 

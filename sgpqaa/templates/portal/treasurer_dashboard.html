@@ -11,6 +11,7 @@
             <p class="lead">As quotas sao geradas automaticamente quando o administrador define uma configuracao activa. Aqui a tesouraria confirma pagamentos em maos e valida transferencias com comprovante.</p>
         </div>
         <div class="dashboard-actions">
+            <a class="button button-primary" href="{% url 'portal:treasury_reports' %}">Ver relatorios</a>
             <a class="button button-secondary" href="{% url 'portal:logout' %}">Terminar sessao</a>
         </div>
     </section>
@@ -27,6 +28,10 @@
         <article>
             <h3>{{ payments_waiting_total }}</h3>
             <p>pagamentos a validar</p>
+        </article>
+        <article>
+            <h3>{{ overdue_quotas_total }}</h3>
+            <p>quotas em atraso</p>
         </article>
     </section>
 

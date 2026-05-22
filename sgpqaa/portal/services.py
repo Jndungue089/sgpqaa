@@ -1,8 +1,12 @@
 from datetime import date
+from decimal import Decimal
 
 from django.db import transaction
+from django.utils import timezone
 
 from .models import MonthlyQuota, QuotaConfig, Vehicle
+
+MONEY_STEP = Decimal('0.01')
 
 
 def get_active_quota_config():
@@ -62,3 +66,41 @@ def ensure_vehicle_has_current_month_quota(vehicle):
         },
     )
     return created
+
+
+def refresh_overdue_quotas(today=None):
+    today = today or timezone.localdate()
+    return MonthlyQuota.objects.filter(
+        due_date__lt=today,
+        status=MonthlyQuota.Status.PENDING,
+    ).update(status=MonthlyQuota.Status.OVERDUE)
+
+
+def calculate_quota_fine(quota, config=None):
+    config = config or get_active_quota_config()
+    if not config or quota.status != MonthlyQuota.Status.OVERDUE:
+        return Decimal('0.00')
+
+    percentage = config.late_fee_percentage or Decimal('0.00')
+    return ((quota.amount_due * percentage) / Decimal('100')).quantize(MONEY_STEP)
+
+
+def build_debt_report_entries(quotas, config=None, today=None):
+    today = today or timezone.localdate()
+    config = config or get_active_quota_config()
+    entries = []
+
+    for quota in quotas:
+        days_overdue = max((today - quota.due_date).days, 0)
+        fine_amount = calculate_quota_fine(quota, config=config)
+        total_due = (quota.amount_due + fine_amount).quantize(MONEY_STEP)
+        entries.append(
+            {
+                'quota': quota,
+                'days_overdue': days_overdue,
+                'fine_amount': fine_amount,
+                'total_due': total_due,
+            }
+        )
+
+    return entries

@@ -1620,7 +1620,158 @@ Esta fase mostra que o sistema ja consegue:
 
 Isto reforca a ideia de que o projecto ja se comporta como um sistema real de gestao.
 
-## 10. Landing page inicial
+## 10. Debitos, multas por atraso e relatorios da tesouraria
+
+Nesta etapa, o sistema passou a dar ao tesoureiro visao sobre a inadimplencia.
+
+Em termos simples, o tesoureiro agora consegue ver:
+
+- quem esta a dever
+- quais quotas ja venceram
+- quanto existe em aberto
+- quanto pode ser cobrado em multa
+
+### 10.1 O que e um debito neste sistema
+
+Debito e uma quota que ainda nao foi liquidada.
+
+Na pratica, consideramos como debito:
+
+- quota pendente
+- quota em atraso
+
+### 10.2 O que significa multa por atraso
+
+A multa por atraso e um valor adicional aplicado quando a quota ja venceu e ainda nao foi paga.
+
+Neste projecto, a multa usa a percentagem definida pelo administrador na configuracao activa
+de quota.
+
+Exemplo simples:
+
+- quota base: `25.000 AOA`
+- multa activa: `10%`
+- multa calculada: `2.500 AOA`
+- total a cobrar: `27.500 AOA`
+
+### 10.3 Quando a quota passa para em atraso
+
+O sistema compara a data actual com a data de vencimento da quota.
+
+Se:
+
+- a quota ainda estiver pendente
+- e a data de vencimento ja tiver passado
+
+entao o sistema actualiza o estado para `Em atraso`.
+
+### 10.4 Porque isso e importante
+
+Esta regra e importante porque permite ao tesoureiro perceber que:
+
+- a quota nao esta apenas em aberto
+- ela ja ultrapassou o prazo normal
+- pode haver necessidade de aplicar multa
+
+### 10.5 Como a multa e calculada
+
+Nesta versao do sistema, a multa foi tratada como percentagem simples sobre o valor base da quota.
+
+Isto significa:
+
+- o sistema pega no valor da quota
+- aplica a percentagem de multa activa
+- apresenta o valor adicional
+
+Esta abordagem foi escolhida porque:
+
+- e facil de explicar
+- e suficiente para a defesa
+- mostra claramente a regra financeira
+
+### 10.6 Porque o relatorio ficou com o tesoureiro
+
+O admin ja tem o necessario para:
+
+- configurar o sistema
+- gerir acessos
+- definir o valor da quota
+
+Ja o tesoureiro precisa de uma visao operacional diaria sobre cobrancas e atrasos.
+
+Por isso, o relatorio de debitos e multas ficou na area da tesouraria.
+
+### 10.7 O que o relatorio da tesouraria mostra
+
+O relatorio mostra:
+
+- numero de associados com debitos
+- quantidade de quotas em atraso
+- valor base em aberto
+- valor total de multas
+- total geral a cobrar
+- lista detalhada das quotas pendentes e vencidas
+
+### 10.8 O que aparece em cada linha do relatorio
+
+Cada linha do relatorio pode mostrar:
+
+- associado
+- viatura
+- mes da quota
+- data de vencimento
+- estado actual
+- valor base
+- multa
+- total a cobrar
+- dias de atraso
+
+### 10.9 Porque os dias de atraso sao uteis
+
+Os dias de atraso ajudam o tesoureiro a perceber a gravidade da divida.
+
+Exemplo:
+
+- uma quota vencida ha 2 dias
+- uma quota vencida ha 45 dias
+
+As duas estao em atraso, mas a segunda exige mais atencao.
+
+### 10.10 Decisoes tomadas nesta etapa
+
+#### Decisao 1: relatorio na area da tesouraria
+
+Motivo:
+
+- o tesoureiro e quem acompanha cobranca no dia a dia
+
+#### Decisao 2: multa calculada a partir da configuracao activa
+
+Motivo:
+
+- evita regras soltas no codigo
+- mantem consistencia com o que o admin definiu
+
+#### Decisao 3: atraso detectado automaticamente
+
+Motivo:
+
+- o sistema precisa reagir ao vencimento sem depender de actualizacao manual
+
+### 10.11 O que a banca pode entender desta etapa
+
+Esta fase mostra que o sistema nao apenas regista pagamentos.
+
+Ele tambem ajuda a gestao a controlar:
+
+- falta de pagamento
+- vencimento de quotas
+- valor potencial a recuperar
+- efeito financeiro do atraso
+
+Isto aproxima ainda mais o projecto de uma ferramenta administrativa real.
+
+## 11. Landing page inicial
 
 A landing page foi criada para ser a porta de entrada do sistema.
 Ela mostra:
@@ -1634,7 +1785,7 @@ Ela mostra:
 Esta pagina ajuda muito na apresentacao porque, antes mesmo do login, a banca consegue
 entender o que esta a ser demonstrado.
 
-## 11. Etapa de autenticacao implementada
+## 12. Etapa de autenticacao implementada
 
 Nesta etapa, passamos a ter um fluxo real de entrada no sistema.
 
@@ -1820,7 +1971,7 @@ A decisao tomada foi:
 - o papel de tesoureiro e atribuido apenas pela administracao
 - o administrador e quem promove esse utilizador no sistema
 
-## 12. Historico de alteracoes
+## 13. Historico de alteracoes
 
 ### Alteracao 1
 
@@ -2026,7 +2177,38 @@ Decisao:
 A validacao do pagamento por transferencia nao deve ser um clique cego numa lista. O fluxo
 correcto passa a ser: rever o comprovativo PDF, analisar os dados e so depois validar.
 
-## 13. Proximos passos previstos
+### Alteracao 13
+
+Data: 22 de Maio de 2026
+
+Foi feito:
+
+- criacao do relatorio de debitos e multas por atraso para a tesouraria
+- actualizacao automatica de quotas vencidas para estado de atraso
+- calculo de multa com base na configuracao activa
+
+Decisao:
+
+Os relatorios financeiros operacionais ficaram com o tesoureiro, nao com o admin, porque
+esta informacao e mais util para o trabalho diario de cobranca do que para a configuracao do
+sistema.
+
+### Alteracao 14
+
+Data: 22 de Maio de 2026
+
+Foi feito:
+
+- organizacao do topo do portal do associado em grelha 2x2
+- adicao de paginacao na pagina de quotas
+- adicao de paginacao no historico de pagamentos
+
+Decisao:
+
+Estas melhorias foram feitas para tornar a interface mais clara e escalavel. Quando houver
+muitas quotas ou muitos pagamentos, o sistema continua legivel e mais facil de navegar.
+
+## 14. Proximos passos previstos
 
 Nas proximas etapas, vamos construir:
 
