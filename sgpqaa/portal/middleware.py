@@ -1,4 +1,4 @@
-from django.shortcuts import redirect
+from django.shortcuts import redirect, render
 from django.urls import reverse
 
 
@@ -29,4 +29,9 @@ class SessionExpiryRedirectMiddleware:
         if is_protected and not request.user.is_authenticated and has_session_cookie and not is_exempt:
             return redirect(reverse('portal:session_expired'))
 
-        return self.get_response(request)
+        response = self.get_response(request)
+
+        if response.status_code == 404 and not is_exempt:
+            return render(request, 'portal/404.html', status=404)
+
+        return response

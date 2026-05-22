@@ -2321,3 +2321,17 @@ Decisao:
 Estas melhorias foram feitas para aproximar o sistema dos requisitos do roadmap e melhorar a
 experiencia de uso. O objectivo foi deixar o sistema mais completo tanto no negocio como no
 comportamento visual e navegacional.
+
+### Alteracao 16
+
+Data: 22 de Maio de 2026
+
+Foi feito:
+
+- ajuste da 404 personalizada para aparecer tambem durante o desenvolvimento com `DEBUG=True`
+
+Decisao:
+
+O Django, por defeito, mostra a pagina tecnica de erro quando o modo de desenvolvimento esta
+activo. Foi adicionada uma camada extra para garantir que a 404 personalizada do projecto
+aparece mesmo durante os testes e demonstracoes locais.
