@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+
+{% block title %}Início | SGPQAA{% endblock %}
+
+{% block body %}
+<main class="page-shell">
+    <section class="hero">
+        <div class="hero-copy">
+            <p class="eyebrow">Gestao simples e moderna</p>
+            <h1>Controle as quotas dos associados com mais rapidez e menos papelada.</h1>
+            <p class="lead">
+                O SGPQAA organiza associados, viaturas, cobrancas mensais e pagamentos
+                num unico lugar, com uma experiencia clara para toda a associacao.
+            </p>
+            <div class="hero-actions">
+                <a class="button button-primary" href="/admin/">Entrar no sistema</a>
+                <a class="button button-secondary" href="#beneficios">Ver beneficios</a>
+            </div>
+        </div>
+
+        <div class="hero-card">
+            <span class="card-label">{{ association_name }}</span>
+            <h2>Mais organizacao para cobrar, acompanhar e validar quotas.</h2>
+            <div class="stat-grid">
+                <article>
+                    <strong>Associados</strong>
+                    <span>cadastro centralizado e facil de consultar</span>
+                </article>
+                <article>
+                    <strong>Pagamentos</strong>
+                    <span>registo manual e simulacao de Multicaixa</span>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <section class="info-strip" id="beneficios">
+        <article>
+            <h3>Cadastro rapido</h3>
+            <p>Registe associados e viaturas sem complicacao.</p>
+        </article>
+        <article>
+            <h3>Cobranca mensal</h3>
+            <p>Acompanhe quotas pendentes, pagas e em atraso.</p>
+        </article>
+        <article>
+            <h3>Validacao simples</h3>
+            <p>Confirme pagamentos com fluxo claro para tesouraria.</p>
+        </article>
+    </section>
+
+    <section class="roadmap" id="roadmap">
+        <div class="section-heading">
+            <p class="eyebrow">O que o sistema oferece</p>
+            <h2>Uma solucao pensada para a rotina da associacao</h2>
+        </div>
+        <div class="roadmap-grid">
+            <article>
+                <h3>Gestao de associados</h3>
+                <p>Dados organizados para consulta e acompanhamento administrativo.</p>
+            </article>
+            <article>
+                <h3>Registo de viaturas</h3>
+                <p>Cada associado pode manter as suas viaturas ligadas ao seu perfil.</p>
+            </article>
+            <article>
+                <h3>Pagamentos controlados</h3>
+                <p>Fluxo preparado para dinheiro e pagamento digital simulado.</p>
+            </article>
+            <article>
+                <h3>Historico e acompanhamento</h3>
+                <p>Mais visibilidade sobre cobrancas, validacoes e movimento mensal.</p>
+            </article>
+        </div>
+    </section>
+
+    <section class="cta-panel">
+        <p class="eyebrow">SGPQAA</p>
+        <h2>Menos processos manuais. Mais controlo para a associacao.</h2>
+        <a class="button button-primary" href="/admin/">Aceder ao painel</a>
+    </section>
+</main>
+{% endblock %}
