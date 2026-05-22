@@ -33,7 +33,6 @@ class RegisterForm(forms.Form):
     member_number = forms.CharField(label='Numero de associado', max_length=30)
     phone = forms.CharField(label='Telefone', max_length=20, required=False)
     identity_card = forms.CharField(label='BI', max_length=30, required=False)
-    staff_name = forms.CharField(label='Staff', max_length=120, required=False)
     password1 = forms.CharField(label='Palavra-passe', widget=forms.PasswordInput)
     password2 = forms.CharField(label='Confirmar palavra-passe', widget=forms.PasswordInput)
 
@@ -81,7 +80,6 @@ class RegisterForm(forms.Form):
             member_number=self.cleaned_data['member_number'],
             phone=self.cleaned_data['phone'],
             identity_card=self.cleaned_data['identity_card'],
-            staff_name=self.cleaned_data['staff_name'],
             role=MemberProfile.Role.MEMBER,
         )
         return user

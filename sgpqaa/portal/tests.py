@@ -25,7 +25,6 @@ class AuthenticationFlowTests(TestCase):
                 'member_number': 'ANATA-001',
                 'phone': '923000000',
                 'identity_card': '123456LA042',
-                'staff_name': 'Staff Central',
                 'password1': 'SenhaForte#2026',
                 'password2': 'SenhaForte#2026',
             },

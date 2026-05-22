@@ -942,6 +942,16 @@ Quando um novo utilizador preenche o formulario de registo:
 7. cria o perfil correspondente em `portal_memberprofile`
 8. inicia a sessao automaticamente
 
+Observacao importante:
+
+No registo publico do associado motorista, o campo `staff` nao aparece.
+
+Motivo:
+
+- o foco do registo publico e o associado comum
+- o associado nao precisa definir sozinho um enquadramento interno de staff
+- esse tipo de classificacao pode ser tratado depois pela administracao, quando for necessario
+
 ### 8.3 Como o login funciona
 
 Quando o utilizador preenche o login:
@@ -980,6 +990,114 @@ Nos proximos passos, esta autenticacao sera ligada a:
 - simulacao de pagamento do associado autenticado
 - validacao feita pelo tesoureiro autenticado
 - administracao feita pelo utilizador com perfil administrador
+
+### 8.7 Administrador padrao e politica de seguranca
+
+O sistema tera um administrador padrao criado com o proprio Django.
+
+Isto sera feito pela **CLI**, que significa **Interface de Linha de Comando**.
+
+Em vez de criar administradores por uma pagina publica do sistema, o administrador e criado
+directamente por quem tem acesso tecnico ao projecto.
+
+### 8.7.1 Porque o registo publico nao pode criar administradores
+
+Por motivos de seguranca, nao podemos permitir que qualquer pessoa crie uma conta de
+administrador pela interface publica.
+
+Se isso fosse permitido, haveria riscos graves:
+
+- qualquer pessoa poderia ganhar controlo total do sistema
+- dados sensiveis poderiam ser alterados ou apagados
+- pagamentos poderiam ser manipulados
+- configuracoes do sistema poderiam ser comprometidas
+
+Por isso, a regra adoptada foi:
+
+- o associado comum pode fazer registo publico
+- o administrador nao pode ser criado publicamente
+- o administrador so e criado por linha de comando
+
+### 8.7.2 Porque usamos o painel admin do Django
+
+O Django ja traz um painel administrativo muito forte e confiavel.
+
+Esse painel permite:
+
+- gerir utilizadores
+- gerir perfis
+- gerir viaturas
+- gerir quotas
+- gerir pagamentos
+
+Em vez de construir ja uma area administrativa completa do zero, aproveitamos o painel admin
+do Django porque ele:
+
+- acelera o desenvolvimento
+- ja e seguro
+- ja trabalha bem com autenticacao
+- facilita a demonstracao do sistema
+
+### 8.7.3 Como se cria um administrador no Django
+
+Existem duas formas comuns:
+
+#### Forma interactiva
+
+```bash
+./.venv/bin/python manage.py createsuperuser
+```
+
+Depois, o terminal vai pedir:
+
+- nome de utilizador
+- email
+- palavra-passe
+
+#### Forma automatizada
+
+Tambem e possivel criar um administrador por comando de script ou por codigo executado na CLI.
+
+Isto e util quando queremos deixar um administrador inicial pronto para demonstracao.
+
+### 8.7.4 O que e um superuser
+
+No Django, o administrador com permissao total chama-se **superuser**.
+
+Esse utilizador pode:
+
+- entrar no painel admin
+- criar e editar utilizadores
+- gerir os dados do sistema
+- atribuir papeis
+- controlar o funcionamento administrativo
+
+### 8.7.5 Quem cria o tesoureiro
+
+O tesoureiro nao sera criado pelo publico.
+
+A regra definida para o projecto e esta:
+
+- o administrador entra no painel admin
+- o administrador cria ou edita um utilizador
+- o administrador define o perfil desse utilizador como `Tesoureiro`
+
+Isto faz sentido porque o tesoureiro e um papel de confianca dentro do sistema.
+
+### 8.7.6 Porque o administrador cria o tesoureiro
+
+O tesoureiro tem poderes importantes, como:
+
+- validar pagamentos
+- confirmar processos financeiros
+- participar no controlo das quotas
+
+Por isso, nao e seguro deixar que qualquer pessoa se auto-declare tesoureiro.
+
+A decisao tomada foi:
+
+- o papel de tesoureiro e atribuido apenas pela administracao
+- o administrador e quem promove esse utilizador no sistema
 
 ## 9. Historico de alteracoes
 
