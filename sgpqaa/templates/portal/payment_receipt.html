@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Recibo | SGPQAA{% endblock %}
+
+{% block body %}
+<main class="page-shell">
+    <section class="receipt-panel">
+        <div class="receipt-header">
+            <div>
+                <p class="eyebrow">Recibo oficial</p>
+                <h1>Recibo de pagamento</h1>
+            </div>
+            <div class="history-actions">
+                <a class="button button-secondary" href="{% url 'portal:payment_history' %}">Voltar ao historico</a>
+                <button class="button button-primary" onclick="window.print()">Imprimir</button>
+            </div>
+        </div>
+
+        <div class="receipt-grid">
+            <article>
+                <h3>Recibo</h3>
+                <p><strong>Numero:</strong> {{ receipt_number }}</p>
+                <p><strong>Data de validacao:</strong> {{ payment.validated_at|date:"d/m/Y H:i" }}</p>
+            </article>
+            <article>
+                <h3>Associado</h3>
+                <p><strong>Nome:</strong> {{ payment.quota.vehicle.owner.user.get_full_name|default:payment.quota.vehicle.owner.user.username }}</p>
+                <p><strong>Numero:</strong> {{ payment.quota.vehicle.owner.member_number }}</p>
+            </article>
+            <article>
+                <h3>Viatura</h3>
+                <p><strong>Matricula:</strong> {{ payment.quota.vehicle.plate_number }}</p>
+                <p><strong>Modelo:</strong> {{ payment.quota.vehicle.model }}</p>
+            </article>
+            <article>
+                <h3>Pagamento</h3>
+                <p><strong>Metodo:</strong> {{ payment.get_method_display }}</p>
+                <p><strong>Valor:</strong> {{ payment.amount_paid }} AOA</p>
+                <p><strong>Mes de referencia:</strong> {{ payment.quota.reference_month|date:"m/Y" }}</p>
+            </article>
+            <article>
+                <h3>Tesouraria</h3>
+                <p><strong>Validado por:</strong> {{ payment.validated_by.user.get_full_name|default:payment.validated_by.user.username }}</p>
+                <p><strong>Estado:</strong> {{ payment.get_status_display }}</p>
+            </article>
+            <article>
+                <h3>Observacoes</h3>
+                <p>{{ payment.notes|default:"Sem observacoes." }}</p>
+            </article>
+        </div>
+    </section>
+</main>
+{% endblock %}

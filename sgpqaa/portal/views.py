@@ -27,6 +27,14 @@ def ensure_treasurer_access(profile):
     return profile.role in {MemberProfile.Role.TREASURER, MemberProfile.Role.ADMIN}
 
 
+def is_admin_profile(profile):
+    return profile.role == MemberProfile.Role.ADMIN or profile.user.is_superuser or profile.user.is_staff
+
+
+def can_access_payment(profile, payment):
+    return ensure_treasurer_access(profile) or payment.quota.vehicle.owner_id == profile.id
+
+
 def home(request):
     context = {
         'association_name': settings.ASSOCIATION_NAME,
@@ -65,7 +73,9 @@ def register_view(request):
 @login_required
 def dashboard(request):
     profile = get_or_create_profile(request.user)
-    if ensure_treasurer_access(profile):
+    if is_admin_profile(profile):
+        return redirect('/admin/')
+    if profile.role == MemberProfile.Role.TREASURER:
         return redirect('portal:treasurer_dashboard')
 
     context = {
@@ -73,6 +83,14 @@ def dashboard(request):
         'vehicles_count': Vehicle.objects.filter(owner=profile).count(),
         'quotas_count': MonthlyQuota.objects.filter(vehicle__owner=profile).count(),
         'payments_count': PaymentRecord.objects.filter(quota__vehicle__owner=profile).count(),
+        'pending_quotas_count': MonthlyQuota.objects.filter(
+            vehicle__owner=profile,
+            status__in=[MonthlyQuota.Status.PENDING, MonthlyQuota.Status.OVERDUE],
+        ).count(),
+        'awaiting_validation_count': MonthlyQuota.objects.filter(
+            vehicle__owner=profile,
+            status=MonthlyQuota.Status.AWAITING_VALIDATION,
+        ).count(),
         'recent_vehicles': Vehicle.objects.filter(owner=profile, is_active=True).order_by('-created_at')[:3],
         'recent_quotas': MonthlyQuota.objects.filter(vehicle__owner=profile).select_related('vehicle')[:5],
     }
@@ -133,6 +151,22 @@ def quota_list(request):
         'quotas': quotas,
     }
     return render(request, 'portal/quotas.html', context)
+
+
+@login_required
+def payment_history(request):
+    profile = get_or_create_profile(request.user)
+    payments = PaymentRecord.objects.filter(
+        quota__vehicle__owner=profile
+    ).select_related('quota__vehicle', 'validated_by__user')
+    return render(
+        request,
+        'portal/payment_history.html',
+        {
+            'profile': profile,
+            'payments': payments,
+        },
+    )
 
 
 @login_required
@@ -206,6 +240,27 @@ def treasurer_dashboard(request):
 
 
 @login_required
+def review_payment(request, payment_id):
+    profile = get_or_create_profile(request.user)
+    if not ensure_treasurer_access(profile):
+        return HttpResponseForbidden('Apenas o tesoureiro ou administrador pode rever pagamentos.')
+
+    payment = get_object_or_404(
+        PaymentRecord.objects.select_related('quota__vehicle__owner__user'),
+        pk=payment_id,
+        status=PaymentRecord.Status.SUBMITTED,
+    )
+    return render(
+        request,
+        'portal/review_payment.html',
+        {
+            'profile': profile,
+            'payment': payment,
+        },
+    )
+
+
+@login_required
 def validate_payment(request, payment_id):
     profile = get_or_create_profile(request.user)
     if not ensure_treasurer_access(profile):
@@ -222,6 +277,32 @@ def validate_payment(request, payment_id):
         messages.success(request, 'Pagamento validado com sucesso.')
 
     return redirect('portal:treasurer_dashboard')
+
+
+@login_required
+def payment_receipt(request, payment_id):
+    profile = get_or_create_profile(request.user)
+    payment = get_object_or_404(
+        PaymentRecord.objects.select_related(
+            'quota__vehicle__owner__user',
+            'validated_by__user',
+        ),
+        pk=payment_id,
+        status=PaymentRecord.Status.VALIDATED,
+    )
+    if not can_access_payment(profile, payment):
+        return HttpResponseForbidden('Nao tem permissao para ver este recibo.')
+
+    receipt_number = f'REC-{payment.id:05d}'
+    return render(
+        request,
+        'portal/payment_receipt.html',
+        {
+            'profile': profile,
+            'payment': payment,
+            'receipt_number': receipt_number,
+        },
+    )
 
 
 @login_required

@@ -52,6 +52,14 @@ class AuthenticationFlowTests(TestCase):
         response = self.client.get(reverse('portal:dashboard'))
         self.assertEqual(response.status_code, 302)
 
+    def test_superuser_is_redirected_to_django_admin(self):
+        user = User.objects.create_superuser(username='rootadmin', email='root@example.com', password='SenhaForte#2026')
+        self.client.login(username='rootadmin', password='SenhaForte#2026')
+
+        response = self.client.get(reverse('portal:dashboard'))
+
+        self.assertRedirects(response, '/admin/')
+
 
 class VehicleFlowTests(TestCase):
     def setUp(self):
@@ -125,6 +133,13 @@ class QuotaAndTreasuryFlowTests(TestCase):
             MonthlyQuota.objects.filter(vehicle=self.vehicle, reference_month=date(2026, 6, 1)).exists()
         )
 
+    def test_treasurer_is_redirected_to_treasury_dashboard(self):
+        self.client.login(username='tesoureiro', password='SenhaForte#2026')
+
+        response = self.client.get(reverse('portal:dashboard'))
+
+        self.assertRedirects(response, reverse('portal:treasurer_dashboard'))
+
     def test_member_can_submit_transfer_proof_for_pending_quota(self):
         quota = MonthlyQuota.objects.create(
             vehicle=self.vehicle,
@@ -134,7 +149,7 @@ class QuotaAndTreasuryFlowTests(TestCase):
             status=MonthlyQuota.Status.PENDING,
         )
         self.client.login(username='carlos', password='SenhaForte#2026')
-        proof = SimpleUploadedFile('comprovante.txt', b'comprovante bancario')
+        proof = SimpleUploadedFile('comprovante.pdf', b'%PDF-1.4 comprovante bancario', content_type='application/pdf')
 
         response = self.client.post(
             reverse('portal:simulate_payment', args=[quota.id]),
@@ -148,6 +163,28 @@ class QuotaAndTreasuryFlowTests(TestCase):
         quota.refresh_from_db()
         self.assertEqual(quota.status, MonthlyQuota.Status.AWAITING_VALIDATION)
         self.assertTrue(PaymentRecord.objects.filter(quota=quota, status=PaymentRecord.Status.SUBMITTED).exists())
+
+    def test_member_cannot_submit_non_pdf_transfer_proof(self):
+        quota = MonthlyQuota.objects.create(
+            vehicle=self.vehicle,
+            reference_month=date(2026, 6, 1),
+            due_date=date(2026, 6, 10),
+            amount_due='25000.00',
+            status=MonthlyQuota.Status.PENDING,
+        )
+        self.client.login(username='carlos', password='SenhaForte#2026')
+        proof = SimpleUploadedFile('comprovante.png', b'fake image', content_type='image/png')
+
+        response = self.client.post(
+            reverse('portal:simulate_payment', args=[quota.id]),
+            {
+                'notes': 'Pagamento de teste',
+                'proof_file': proof,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'O comprovante deve ser enviado em formato PDF.')
 
     def test_treasurer_can_validate_transfer_payment(self):
         quota = MonthlyQuota.objects.create(
@@ -163,12 +200,15 @@ class QuotaAndTreasuryFlowTests(TestCase):
             status=PaymentRecord.Status.SUBMITTED,
             amount_paid='25000.00',
             payment_date='2026-06-02T10:00:00Z',
-            proof_file=SimpleUploadedFile('comprovante.txt', b'comprovante'),
+            proof_file=SimpleUploadedFile('comprovante.pdf', b'%PDF-1.4 comprovante', content_type='application/pdf'),
         )
         self.client.login(username='tesoureiro', password='SenhaForte#2026')
 
+        review_response = self.client.get(reverse('portal:review_payment', args=[payment.id]))
         response = self.client.post(reverse('portal:validate_payment', args=[payment.id]))
 
+        self.assertEqual(review_response.status_code, 200)
+        self.assertContains(review_response, 'Abrir PDF')
         self.assertRedirects(response, reverse('portal:treasurer_dashboard'))
         payment.refresh_from_db()
         quota.refresh_from_db()
@@ -194,3 +234,30 @@ class QuotaAndTreasuryFlowTests(TestCase):
         self.assertEqual(quota.status, MonthlyQuota.Status.PAID)
         self.assertEqual(payment.method, PaymentRecord.Method.CASH)
         self.assertEqual(payment.status, PaymentRecord.Status.VALIDATED)
+
+    def test_member_can_view_payment_history_and_receipt(self):
+        quota = MonthlyQuota.objects.create(
+            vehicle=self.vehicle,
+            reference_month=date(2026, 6, 1),
+            due_date=date(2026, 6, 10),
+            amount_due='25000.00',
+            status=MonthlyQuota.Status.PAID,
+        )
+        payment = PaymentRecord.objects.create(
+            quota=quota,
+            method=PaymentRecord.Method.CASH,
+            status=PaymentRecord.Status.VALIDATED,
+            amount_paid='25000.00',
+            payment_date='2026-06-02T10:00:00Z',
+            validated_by=self.treasurer_profile,
+            validated_at='2026-06-02T10:05:00Z',
+        )
+        self.client.login(username='carlos', password='SenhaForte#2026')
+
+        history_response = self.client.get(reverse('portal:payment_history'))
+        receipt_response = self.client.get(reverse('portal:payment_receipt', args=[payment.id]))
+
+        self.assertEqual(history_response.status_code, 200)
+        self.assertContains(history_response, 'Historico de pagamentos')
+        self.assertEqual(receipt_response.status_code, 200)
+        self.assertContains(receipt_response, 'Recibo de pagamento')

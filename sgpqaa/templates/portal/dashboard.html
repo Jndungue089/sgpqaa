@@ -13,6 +13,7 @@
         <div class="dashboard-actions">
             <a class="button button-primary" href="{% url 'portal:vehicles' %}">Gerir viaturas</a>
             <a class="button button-primary" href="{% url 'portal:quotas' %}">Ver quotas</a>
+            <a class="button button-primary" href="{% url 'portal:payment_history' %}">Historico de pagamentos</a>
             <a class="button button-secondary" href="{% url 'portal:home' %}">Ver landing page</a>
             <a class="button button-secondary" href="{% url 'portal:logout' %}">Terminar sessao</a>
         </div>
@@ -47,8 +48,12 @@
             <p>pagamentos registados</p>
         </article>
         <article>
-            <h3>Proximo passo</h3>
-            <p>geracao de quotas e simulacao de pagamento a partir das viaturas registadas.</p>
+            <h3>{{ pending_quotas_count }}</h3>
+            <p>quotas pendentes ou em atraso</p>
+        </article>
+        <article>
+            <h3>{{ awaiting_validation_count }}</h3>
+            <p>quotas a aguardar validacao da tesouraria</p>
         </article>
     </section>
 

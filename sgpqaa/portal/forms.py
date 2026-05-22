@@ -120,3 +120,16 @@ class BankTransferProofForm(forms.Form):
         required=False,
         widget=forms.Textarea(attrs={'rows': 3}),
     )
+
+    def clean_proof_file(self):
+        proof_file = self.cleaned_data['proof_file']
+        filename = proof_file.name.lower()
+        content_type = getattr(proof_file, 'content_type', '')
+
+        if not filename.endswith('.pdf'):
+            raise forms.ValidationError('O comprovante deve ser enviado em formato PDF.')
+
+        if content_type and content_type not in {'application/pdf', 'application/x-pdf'}:
+            raise forms.ValidationError('Apenas ficheiros PDF sao aceites como comprovante.')
+
+        return proof_file

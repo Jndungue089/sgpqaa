@@ -61,14 +61,8 @@
                             <span class="vehicle-status">
                                 {% if payment.simulated_reference %}{{ payment.simulated_reference }}{% endif %}
                             </span>
-                            {% if payment.proof_file %}
-                                <p><a href="{{ payment.proof_file.url }}">Ver comprovante</a></p>
-                            {% endif %}
                         </div>
-                        <form method="post" action="{% url 'portal:validate_payment' payment.id %}">
-                            {% csrf_token %}
-                            <button type="submit" class="button button-primary">Validar</button>
-                        </form>
+                        <a class="button button-primary" href="{% url 'portal:review_payment' payment.id %}">Rever comprovativo</a>
                     </article>
                 {% empty %}
                     <article class="vehicle-card">

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Historico de Pagamentos | SGPQAA{% endblock %}
+
+{% block body %}
+<main class="page-shell">
+    <section class="dashboard-header">
+        <div>
+            <p class="eyebrow">Historico de pagamentos</p>
+            <h1>Acompanhar pagamentos submetidos e validados.</h1>
+            <p class="lead">Esta area mostra todos os pagamentos ligados ao seu perfil, incluindo o estado do processo e o acesso ao recibo quando existir validacao.</p>
+        </div>
+        <div class="dashboard-actions">
+            <a class="button button-secondary" href="{% url 'portal:dashboard' %}">Voltar ao dashboard</a>
+        </div>
+    </section>
+
+    <section class="vehicle-list-panel">
+        <div class="section-heading vehicle-heading">
+            <p class="eyebrow">Registos</p>
+            <h2>Pagamentos do associado {{ profile.member_number }}</h2>
+        </div>
+        <div class="vehicle-card-list">
+            {% for payment in payments %}
+                <article class="vehicle-card">
+                    <div>
+                        <h3>{{ payment.quota.vehicle.plate_number }} - {{ payment.quota.reference_month|date:"m/Y" }}</h3>
+                        <p>{{ payment.get_method_display }} | {{ payment.amount_paid }} AOA | {{ payment.payment_date|date:"d/m/Y H:i" }}</p>
+                        <span class="vehicle-status">{{ payment.get_status_display }}</span>
+                    </div>
+                    <div class="history-actions">
+                        {% if payment.status == 'validated' %}
+                            <a class="button button-primary" href="{% url 'portal:payment_receipt' payment.id %}">Ver recibo</a>
+                        {% endif %}
+                        {% if payment.proof_file %}
+                            <a class="button button-secondary" href="{{ payment.proof_file.url }}">Ver PDF</a>
+                        {% endif %}
+                    </div>
+                </article>
+            {% empty %}
+                <article class="vehicle-card">
+                    <div>
+                        <h3>Sem pagamentos registados</h3>
+                        <p>Ainda nao existe historico de pagamentos para o seu perfil.</p>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    </section>
+</main>
+{% endblock %}

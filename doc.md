@@ -1231,6 +1231,15 @@ O tesoureiro:
 
 Isto respeita a divisao de papeis no negocio.
 
+Observacao importante sobre navegacao:
+
+- o associado entra na area do associado
+- o tesoureiro entra na dashboard de tesouraria
+- o administrador/superuser e encaminhado para o painel admin do Django
+
+Isto foi decidido porque o administrador tem uma funcao mais ampla e estrutural dentro do
+sistema, enquanto o tesoureiro tem uma funcao operacional financeira especifica.
+
 ### 8.10 O que o tesoureiro ve na sua dashboard
 
 Na dashboard do tesoureiro existem areas como:
@@ -1309,6 +1318,35 @@ Esse ficheiro pode representar, por exemplo:
 
 No sistema, esse ficheiro fica guardado associado ao registo do pagamento.
 
+### 8.16.1 Porque o comprovante deve ser PDF
+
+Foi definido que os comprovantes enviados pelo associado devem ser em formato PDF.
+
+Esta decisao foi tomada por varias razoes:
+
+- PDF e um formato mais formal e comum para documentos
+- e mais facil de arquivar
+- reduz a variedade de ficheiros recebidos
+- melhora a organizacao da tesouraria
+- facilita a apresentacao e impressao futura
+
+Em termos de controlo, isto tambem ajuda porque:
+
+- evita imagens soltas em formatos diferentes
+- reduz confusao com ficheiros inadequados
+- aproxima o sistema de uma rotina administrativa real
+
+### 8.16.2 O que acontece se o ficheiro nao for PDF
+
+Se o associado tentar enviar outro formato, como:
+
+- PNG
+- JPG
+- DOCX
+- TXT
+
+o sistema rejeita o ficheiro e pede que o comprovante seja enviado em PDF.
+
 ### 8.17 O que acontece quando o associado envia o comprovante
 
 Quando o associado envia o comprovante:
@@ -1336,6 +1374,17 @@ Por isso, o comprovante precisa de ser verificado por um responsavel.
 
 Na dashboard do tesoureiro aparece a lista de transferencias pendentes.
 
+Antes da validacao final, o tesoureiro deve primeiro abrir a revisao do pagamento.
+
+Nessa revisao, ele pode:
+
+- ver os dados do pagamento
+- ver a viatura e o associado
+- abrir o comprovativo PDF
+- confirmar se o documento esta correcto
+
+So depois disso e que ele valida.
+
 Quando ele valida:
 
 1. o pagamento passa para `Validado`
@@ -1353,6 +1402,16 @@ Isto ajuda a garantir:
 - confianca no historico
 - controlo sobre a tesouraria
 - registos coerentes
+
+Tambem foi decidido que a validacao nao deve acontecer "as cegas".
+
+Ou seja:
+
+- o tesoureiro nao deve apenas clicar validar na lista
+- ele deve primeiro abrir o comprovativo PDF
+- so depois confirmar a validacao
+
+Isto torna o processo mais realista e mais seguro.
 
 ### 8.21 Estados usados nesta fase
 
@@ -1426,7 +1485,142 @@ Em termos simples, esta fase mostra que o sistema ja faz controlo administrativo
 
 Isto aproxima muito o projecto de um sistema real de gestao de quotas.
 
-## 9. Landing page inicial
+## 9. Recibo e historico de pagamentos
+
+Depois da validacao do pagamento, o sistema passou a ter duas funcionalidades muito
+importantes:
+
+- historico de pagamentos
+- recibo
+
+### 9.1 O que e o historico de pagamentos
+
+O historico de pagamentos e a lista organizada de todos os pagamentos ligados ao associado.
+
+Essa area permite ver:
+
+- que pagamentos ja foram feitos
+- a que viatura pertencem
+- a que mes pertencem
+- qual foi o metodo usado
+- qual e o estado do pagamento
+
+### 9.2 Porque o historico de pagamentos e importante
+
+O historico e importante porque um sistema financeiro precisa guardar memoria.
+
+Sem historico, o utilizador e a associacao nao conseguiriam responder perguntas como:
+
+- ja paguei esta quota?
+- paguei por transferencia ou em maos?
+- este pagamento ja foi validado?
+- em que data isso aconteceu?
+
+### 9.3 Como o historico funciona no sistema
+
+O historico foi ligado ao perfil autenticado do associado.
+
+Isto significa que:
+
+- o associado ve apenas os seus proprios pagamentos
+- o historico e montado a partir dos `PaymentRecord` ligados as suas quotas
+
+### 9.4 O que e o recibo
+
+O recibo e a comprovacao formal de que um pagamento foi validado pela tesouraria.
+
+No sistema, o recibo so existe quando o pagamento esta realmente validado.
+
+### 9.5 Porque o recibo so aparece depois da validacao
+
+Isto foi decidido porque um recibo nao deve ser emitido apenas porque o associado disse que pagou.
+
+O recibo representa confirmacao oficial.
+
+Por isso:
+
+- se o pagamento ainda nao foi validado, nao ha recibo
+- se o pagamento foi validado, o recibo fica disponivel
+
+### 9.6 O que aparece no recibo
+
+O recibo mostra informacoes como:
+
+- numero do recibo
+- data da validacao
+- nome do associado
+- numero de associado
+- matricula da viatura
+- metodo de pagamento
+- valor pago
+- mes de referencia
+- nome de quem validou
+- observacoes
+
+### 9.7 Porque o recibo e importante para a defesa
+
+O recibo e uma das partes mais fortes visualmente e funcionalmente para apresentacao.
+
+Ele mostra que o sistema nao apenas regista dados, mas fecha um processo administrativo com:
+
+- cobranca
+- pagamento
+- confirmacao
+- comprovacao final
+
+### 9.8 Como o recibo foi implementado
+
+Nesta fase, o recibo foi implementado como uma pagina propria do sistema, preparada para:
+
+- leitura no browser
+- impressao
+
+Isto permite demonstrar o processo de forma clara sem depender de bibliotecas externas mais complexas.
+
+### 9.9 Relacao entre historico e recibo
+
+O historico funciona como a lista geral.
+O recibo funciona como o detalhe oficial de um pagamento validado.
+
+Em linguagem simples:
+
+- o historico mostra todos os registos
+- o recibo mostra a prova final de um registo validado
+
+### 9.10 Decisoes tomadas nesta etapa
+
+#### Decisao 1: recibo so para pagamento validado
+
+Motivo:
+
+- garante seriedade documental
+
+#### Decisao 2: historico ligado ao associado autenticado
+
+Motivo:
+
+- protege a privacidade
+- evita acesso a pagamentos de outros membros
+
+#### Decisao 3: PDF obrigatorio para comprovantes
+
+Motivo:
+
+- padronizacao
+- organizacao administrativa
+- maior formalidade documental
+
+### 9.11 O que a banca pode entender desta etapa
+
+Esta fase mostra que o sistema ja consegue:
+
+- guardar o caminho do pagamento
+- mostrar os registos anteriores
+- emitir uma prova final de validacao
+
+Isto reforca a ideia de que o projecto ja se comporta como um sistema real de gestao.
+
+## 10. Landing page inicial
 
 A landing page foi criada para ser a porta de entrada do sistema.
 Ela mostra:
@@ -1440,7 +1634,7 @@ Ela mostra:
 Esta pagina ajuda muito na apresentacao porque, antes mesmo do login, a banca consegue
 entender o que esta a ser demonstrado.
 
-## 10. Etapa de autenticacao implementada
+## 11. Etapa de autenticacao implementada
 
 Nesta etapa, passamos a ter um fluxo real de entrada no sistema.
 
@@ -1626,7 +1820,7 @@ A decisao tomada foi:
 - o papel de tesoureiro e atribuido apenas pela administracao
 - o administrador e quem promove esse utilizador no sistema
 
-## 11. Historico de alteracoes
+## 12. Historico de alteracoes
 
 ### Alteracao 1
 
@@ -1782,7 +1976,57 @@ administrador ficou responsavel por definir o valor da quota, o sistema ficou re
 pela geracao automatica das cobrancas, e a tesouraria ficou responsavel por confirmar os
 pagamentos em maos e validar os comprovantes de transferencia enviados pelos associados.
 
-## 12. Proximos passos previstos
+### Alteracao 10
+
+Data: 22 de Maio de 2026
+
+Foi feito:
+
+- restricao dos comprovantes para formato PDF
+- criacao do historico de pagamentos do associado
+- criacao do recibo de pagamento validado
+- reforco documental completo destas funcionalidades
+
+Decisao:
+
+Os comprovantes foram padronizados em PDF para melhorar a organizacao administrativa. O
+recibo passou a existir apenas depois da validacao, e o historico passou a mostrar de forma
+clara a linha do tempo dos pagamentos do associado.
+
+### Alteracao 11
+
+Data: 22 de Maio de 2026
+
+Foi feito:
+
+- separacao da navegacao do superuser/administrador e do tesoureiro
+- correcao do redireccionamento do dashboard
+
+Decisao:
+
+O administrador nao deve cair na dashboard da tesouraria por defeito. O comportamento
+correcto passa a ser:
+
+- superuser/administrador vai para `/admin/`
+- tesoureiro vai para a dashboard de tesouraria
+- associado vai para a sua area normal
+
+### Alteracao 12
+
+Data: 22 de Maio de 2026
+
+Foi feito:
+
+- criacao de uma etapa de revisao do comprovativo antes da validacao
+- obrigatoriedade de o tesoureiro abrir a pagina de revisao do pagamento
+- acesso directo ao PDF antes da confirmacao
+
+Decisao:
+
+A validacao do pagamento por transferencia nao deve ser um clique cego numa lista. O fluxo
+correcto passa a ser: rever o comprovativo PDF, analisar os dados e so depois validar.
+
+## 13. Proximos passos previstos
 
 Nas proximas etapas, vamos construir:
 

@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Rever Comprovativo | SGPQAA{% endblock %}
+
+{% block body %}
+<main class="page-shell">
+    <section class="dashboard-header">
+        <div>
+            <p class="eyebrow">Revisao do comprovativo</p>
+            <h1>Verificar comprovativo antes da validacao.</h1>
+            <p class="lead">Nesta etapa o tesoureiro confere o PDF enviado pelo associado e so depois decide validar o pagamento.</p>
+        </div>
+        <div class="dashboard-actions">
+            <a class="button button-secondary" href="{% url 'portal:treasurer_dashboard' %}">Voltar a tesouraria</a>
+        </div>
+    </section>
+
+    <section class="vehicle-layout">
+        <section class="vehicle-list-panel">
+            <div class="section-heading vehicle-heading">
+                <p class="eyebrow">Detalhes do pagamento</p>
+                <h2>{{ payment.quota.vehicle.plate_number }} - {{ payment.quota.reference_month|date:"m/Y" }}</h2>
+            </div>
+            <div class="vehicle-card-list">
+                <article class="vehicle-card">
+                    <div>
+                        <h3>Associado</h3>
+                        <p>{{ payment.quota.vehicle.owner.user.get_full_name|default:payment.quota.vehicle.owner.user.username }}</p>
+                        <p>{{ payment.quota.vehicle.owner.member_number }}</p>
+                    </div>
+                </article>
+                <article class="vehicle-card">
+                    <div>
+                        <h3>Pagamento</h3>
+                        <p>{{ payment.get_method_display }} | {{ payment.amount_paid }} AOA</p>
+                        <p>Referencia: {{ payment.simulated_reference|default:"Sem referencia" }}</p>
+                        <p>Submetido em: {{ payment.payment_date|date:"d/m/Y H:i" }}</p>
+                    </div>
+                </article>
+            </div>
+        </section>
+
+        <section class="auth-form vehicle-form-panel">
+            <h2>Comprovativo PDF</h2>
+            {% if payment.proof_file %}
+                <div class="payment-summary">
+                    <p>O comprovativo foi enviado em PDF.</p>
+                    <a class="button button-secondary button-full" href="{{ payment.proof_file.url }}" target="_blank" rel="noopener noreferrer">Abrir PDF</a>
+                </div>
+            {% else %}
+                <div class="form-error">
+                    Este pagamento nao tem comprovativo associado.
+                </div>
+            {% endif %}
+
+            <form method="post" action="{% url 'portal:validate_payment' payment.id %}">
+                {% csrf_token %}
+                <button type="submit" class="button button-primary button-full">Validar pagamento</button>
+            </form>
+        </section>
+    </section>
+</main>
+{% endblock %}
