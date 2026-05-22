@@ -372,6 +372,21 @@ Guarda os dados do associado e o seu papel no sistema:
 
 Guarda as viaturas ligadas a cada associado.
 
+Campos principais e significado:
+
+- `owner`: indica a quem a viatura pertence
+- `plate_number`: matricula da viatura
+- `model`: modelo do carro
+- `year`: ano da viatura
+- `color`: cor da viatura
+- `is_active`: indica se a viatura ainda esta activa no sistema
+
+Porque a viatura e uma entidade propria:
+
+- um associado pode ter mais de uma viatura
+- cada viatura pode gerar quotas diferentes ao longo do tempo
+- o sistema precisa acompanhar historico por viatura
+
 ### 5.3 `QuotaConfig`
 
 Guarda o valor da quota e possiveis multas.
@@ -899,7 +914,186 @@ Em resumo:
 o desenho da base de dados foi pensado para ser simples de entender, mas suficientemente
 forte para parecer um sistema real.
 
-## 7. Landing page inicial
+## 7. Etapa de registo de viaturas
+
+Nesta etapa, o sistema passou a permitir que o associado autenticado registe as suas viaturas.
+
+### 7.1 Porque o registo de viaturas e importante
+
+Neste projecto, a quota nao sera gerada apenas para a pessoa.
+Ela sera gerada para a viatura associada ao membro.
+
+Isto significa que a viatura e uma parte central do negocio.
+
+Sem o registo de viaturas, o sistema nao conseguiria:
+
+- saber quantos carros pertencem ao associado
+- gerar quotas por carro
+- calcular debitos por viatura
+- emitir historico correcto por matricula
+
+### 7.2 O que foi implementado
+
+Foi implementado:
+
+- formulario para registar viatura
+- listagem das viaturas do associado autenticado
+- associacao automatica da viatura ao perfil logado
+- desactivacao da viatura sem apagar o historico
+
+### 7.3 Como o registo funciona
+
+O fluxo e este:
+
+1. o associado entra no sistema
+2. abre a pagina de viaturas
+3. preenche matricula, modelo, ano e cor
+4. o sistema valida os dados
+5. a viatura fica ligada ao perfil do associado autenticado
+6. a viatura passa a aparecer na lista do proprio associado
+
+### 7.4 Porque a viatura fica ligada ao utilizador autenticado
+
+Esta foi uma decisao importante de seguranca e organizacao.
+
+O sistema nao pede ao utilizador para escolher manualmente o dono da viatura no registo publico.
+Em vez disso, o sistema usa automaticamente o perfil que esta autenticado.
+
+Isto evita problemas como:
+
+- um associado tentar registar uma viatura no nome de outra pessoa
+- erro humano ao escolher o proprietario
+- confusao entre perfis
+
+### 7.5 Porque a matricula e unica
+
+A matricula foi definida como unica no sistema.
+
+Isto significa que nao podem existir duas viaturas com a mesma matricula.
+
+Esta decisao foi tomada porque:
+
+- uma viatura real deve ser identificada de forma unica
+- evita duplicacao de registos
+- melhora a confianca dos dados
+- facilita relatorios e pesquisas
+
+### 7.6 Porque usamos desactivacao em vez de apagar
+
+Quando o associado deixa de usar uma viatura, ou quando a viatura sai do sistema, e melhor
+desactiva-la em vez de apagar o registo.
+
+Fazemos isso com o campo `is_active`.
+
+Esta decisao foi tomada porque apagar dados pode causar problemas:
+
+- perda de historico
+- quebra de relatorios antigos
+- confusao com quotas ja geradas
+- dificuldade para auditoria
+
+Por isso, o sistema prefere:
+
+- manter o registo
+- marcar a viatura como inactiva
+- preservar o passado
+
+### 7.7 Porque nao apagamos a viatura fisicamente
+
+Num sistema de gestao, apagar definitivamente nem sempre e a melhor opcao.
+
+Se uma viatura ja teve:
+
+- quotas
+- pagamentos
+- recibos
+- historico financeiro
+
+entao o registo dela tem valor historico.
+
+Mesmo que ela deixe de estar activa, o sistema pode continuar a precisar dela para:
+
+- consultar movimentos antigos
+- justificar cobrancas passadas
+- mostrar o historico do associado
+
+### 7.8 Relacao entre viatura e quota
+
+O registo de viaturas foi pensado para preparar a proxima fase.
+
+A ideia do sistema e:
+
+- cada viatura activa pode receber quotas mensais
+- essas quotas ficam ligadas a uma viatura especifica
+- os pagamentos tambem ficam ligados a essa mesma linha de historico
+
+Ou seja:
+
+`Associado -> Viatura -> Quota Mensal -> Pagamento`
+
+Esta cadeia e muito importante para a logica do sistema.
+
+### 7.9 Decisoes tecnicas tomadas nesta etapa
+
+#### Decisao 1: usar uma pagina protegida
+
+O registo de viaturas so pode ser feito por utilizadores autenticados.
+
+Motivo:
+
+- a viatura precisa pertencer a alguem identificado no sistema
+
+#### Decisao 2: usar `ModelForm`
+
+Foi usado um formulario ligado ao modelo `Vehicle`.
+
+Motivo:
+
+- reduz codigo repetido
+- usa as validacoes do Django
+- deixa o codigo mais limpo
+
+#### Decisao 3: guardar o dono no servidor
+
+O dono da viatura nao vem do formulario publico.
+Ele e definido no servidor a partir do utilizador autenticado.
+
+Motivo:
+
+- melhora a seguranca
+- evita manipulacao de dados
+
+#### Decisao 4: permitir desactivacao logica
+
+Em vez de eliminar, a viatura passa para estado inactivo.
+
+Motivo:
+
+- preserva historico
+- prepara melhor os relatorios futuros
+
+### 7.10 Como esta etapa sera usada depois
+
+O registo de viaturas servira de base para:
+
+- geracao de quotas mensais
+- consulta de debitos
+- historico de pagamentos
+- recibos por viatura
+- relatorios de inadimplencia
+
+### 7.11 O que a banca pode entender desta etapa
+
+Em termos simples, esta fase mostra que:
+
+- o associado entra no sistema
+- regista os seus carros
+- o sistema passa a saber exactamente sobre que carro vai cobrar
+- a gestao deixa de ser genérica e passa a ser organizada por viatura
+
+Isto aproxima o projecto de uma situacao real de controlo administrativo.
+
+## 8. Landing page inicial
 
 A landing page foi criada para ser a porta de entrada do sistema.
 Ela mostra:
@@ -913,7 +1107,7 @@ Ela mostra:
 Esta pagina ajuda muito na apresentacao porque, antes mesmo do login, a banca consegue
 entender o que esta a ser demonstrado.
 
-## 8. Etapa de autenticacao implementada
+## 9. Etapa de autenticacao implementada
 
 Nesta etapa, passamos a ter um fluxo real de entrada no sistema.
 
@@ -1099,7 +1293,7 @@ A decisao tomada foi:
 - o papel de tesoureiro e atribuido apenas pela administracao
 - o administrador e quem promove esse utilizador no sistema
 
-## 9. Historico de alteracoes
+## 10. Historico de alteracoes
 
 ### Alteracao 1
 
@@ -1216,7 +1410,25 @@ Foi adoptada autenticacao classica do Django com sessao no servidor. JWT ficou a
 conceito documentado, mas nao como tecnologia usada nesta fase, por ser desnecessario para
 o tipo de aplicacao que estamos a construir agora.
 
-## 10. Proximos passos previstos
+### Alteracao 8
+
+Data: 22 de Maio de 2026
+
+Foi feito:
+
+- implementacao do registo de viaturas para o associado autenticado
+- criacao da pagina de gestao de viaturas
+- criacao de listagem das viaturas do proprio associado
+- implementacao de desactivacao logica de viaturas
+- reforco completo da documentacao desta etapa
+
+Decisao:
+
+As viaturas passaram a ser tratadas como base da geracao de quotas. A remocao foi feita por
+desactivacao logica, e nao por apagamento fisico, para preservar historico e manter o
+sistema preparado para as proximas fases.
+
+## 11. Proximos passos previstos
 
 Nas proximas etapas, vamos construir:
 

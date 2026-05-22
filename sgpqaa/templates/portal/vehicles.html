@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Viaturas | SGPQAA{% endblock %}
+
+{% block body %}
+<main class="page-shell">
+    <section class="dashboard-header">
+        <div>
+            <p class="eyebrow">Registo de viaturas</p>
+            <h1>Gerir viaturas do associado.</h1>
+            <p class="lead">Cadastre as suas viaturas para que o sistema possa gerar e acompanhar quotas mensais por carro.</p>
+        </div>
+        <div class="dashboard-actions">
+            <a class="button button-secondary" href="{% url 'portal:dashboard' %}">Voltar ao dashboard</a>
+        </div>
+    </section>
+
+    <section class="vehicle-layout">
+        <form method="post" class="auth-form vehicle-form-panel">
+            {% csrf_token %}
+            <h2>Nova viatura</h2>
+            {% if form.non_field_errors %}
+                <div class="form-error">{{ form.non_field_errors }}</div>
+            {% endif %}
+            {% for field in form %}
+                <label class="field-group">
+                    <span>{{ field.label }}</span>
+                    {{ field }}
+                    {% if field.errors %}
+                        <small class="field-error">{{ field.errors|join:", " }}</small>
+                    {% endif %}
+                </label>
+            {% endfor %}
+            <button type="submit" class="button button-primary button-full">Registar viatura</button>
+        </form>
+
+        <section class="vehicle-list-panel">
+            <div class="section-heading vehicle-heading">
+                <p class="eyebrow">Lista actual</p>
+                <h2>Viaturas de {{ profile.user.first_name|default:profile.user.username }}</h2>
+            </div>
+
+            <div class="vehicle-card-list">
+                {% for vehicle in vehicles %}
+                    <article class="vehicle-card {% if not vehicle.is_active %}vehicle-card-inactive{% endif %}">
+                        <div>
+                            <h3>{{ vehicle.plate_number }}</h3>
+                            <p>{{ vehicle.model }} - {{ vehicle.year }} - {{ vehicle.color }}</p>
+                            <span class="vehicle-status">{% if vehicle.is_active %}Activa{% else %}Desactivada{% endif %}</span>
+                        </div>
+                        {% if vehicle.is_active %}
+                            <form method="post" action="{% url 'portal:vehicle_deactivate' vehicle.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="button button-secondary">Desactivar</button>
+                            </form>
+                        {% endif %}
+                    </article>
+                {% empty %}
+                    <article class="vehicle-card">
+                        <div>
+                            <h3>Sem viaturas registadas</h3>
+                            <p>Adicione a primeira viatura para comecar a gerar quotas mensais.</p>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        </section>
+    </section>
+</main>
+{% endblock %}

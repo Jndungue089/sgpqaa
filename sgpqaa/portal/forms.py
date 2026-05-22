@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.password_validation import validate_password
 
-from .models import MemberProfile
+from .models import MemberProfile, Vehicle
 
 User = get_user_model()
 
@@ -83,3 +83,27 @@ class RegisterForm(forms.Form):
             role=MemberProfile.Role.MEMBER,
         )
         return user
+
+
+class VehicleForm(forms.ModelForm):
+    class Meta:
+        model = Vehicle
+        fields = ['plate_number', 'model', 'year', 'color']
+        labels = {
+            'plate_number': 'Matricula',
+            'model': 'Modelo',
+            'year': 'Ano',
+            'color': 'Cor',
+        }
+
+    def clean_plate_number(self):
+        plate_number = self.cleaned_data['plate_number'].strip().upper()
+        queryset = Vehicle.objects.filter(plate_number=plate_number)
+
+        if self.instance.pk:
+            queryset = queryset.exclude(pk=self.instance.pk)
+
+        if queryset.exists():
+            raise forms.ValidationError('Ja existe uma viatura com esta matricula.')
+
+        return plate_number

@@ -11,8 +11,9 @@
             <p class="lead">Esta e a sua area inicial no sistema. Aqui vamos centralizar os seus dados, viaturas e pagamentos.</p>
         </div>
         <div class="dashboard-actions">
+            <a class="button button-primary" href="{% url 'portal:vehicles' %}">Gerir viaturas</a>
             <a class="button button-secondary" href="{% url 'portal:home' %}">Ver landing page</a>
-            <a class="button button-primary" href="{% url 'portal:logout' %}">Terminar sessao</a>
+            <a class="button button-secondary" href="{% url 'portal:logout' %}">Terminar sessao</a>
         </div>
     </section>
 
@@ -26,8 +27,8 @@
             <p>{{ profile.phone|default:"Sem telefone registado" }}</p>
         </article>
         <article>
-            <h3>Staff</h3>
-            <p>{{ profile.staff_name|default:"Sem staff definido" }}</p>
+            <h3>Estado</h3>
+            <p>{% if profile.is_active_member %}Associado activo{% else %}Associado inactivo{% endif %}</p>
         </article>
     </section>
 
@@ -46,8 +47,28 @@
         </article>
         <article>
             <h3>Proximo passo</h3>
-            <p>ligar o registo de viaturas, geracao de quotas e simulacao de pagamento.</p>
+            <p>geracao de quotas e simulacao de pagamento a partir das viaturas registadas.</p>
         </article>
+    </section>
+
+    <section class="dashboard-preview">
+        <div class="section-heading">
+            <p class="eyebrow">Viaturas recentes</p>
+            <h2>As suas ultimas viaturas registadas</h2>
+        </div>
+        <div class="roadmap-grid dashboard-grid">
+            {% for vehicle in recent_vehicles %}
+                <article>
+                    <h3>{{ vehicle.plate_number }}</h3>
+                    <p>{{ vehicle.model }} - {{ vehicle.year }} - {{ vehicle.color }}</p>
+                </article>
+            {% empty %}
+                <article>
+                    <h3>Sem viaturas</h3>
+                    <p>Ainda nao existe nenhuma viatura registada no seu perfil.</p>
+                </article>
+            {% endfor %}
+        </div>
     </section>
 </main>
 {% endblock %}

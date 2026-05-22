@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import MemberProfile
+from .models import MemberProfile, Vehicle
 
 
 class HomePageTests(TestCase):
@@ -48,3 +48,41 @@ class AuthenticationFlowTests(TestCase):
     def test_dashboard_requires_login(self):
         response = self.client.get(reverse('portal:dashboard'))
         self.assertEqual(response.status_code, 302)
+
+
+class VehicleFlowTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='joao', password='SenhaForte#2026')
+        self.profile = MemberProfile.objects.create(user=self.user, member_number='ANATA-003')
+
+    def test_authenticated_user_can_register_vehicle(self):
+        self.client.login(username='joao', password='SenhaForte#2026')
+
+        response = self.client.post(
+            reverse('portal:vehicles'),
+            {
+                'plate_number': 'LD-45-90-AA',
+                'model': 'Toyota Corolla',
+                'year': 2020,
+                'color': 'Branco',
+            },
+        )
+
+        self.assertRedirects(response, reverse('portal:vehicles'))
+        self.assertTrue(Vehicle.objects.filter(owner=self.profile, plate_number='LD-45-90-AA').exists())
+
+    def test_user_can_deactivate_own_vehicle(self):
+        vehicle = Vehicle.objects.create(
+            owner=self.profile,
+            plate_number='LD-55-10-BB',
+            model='Hyundai i10',
+            year=2019,
+            color='Cinza',
+        )
+        self.client.login(username='joao', password='SenhaForte#2026')
+
+        response = self.client.post(reverse('portal:vehicle_deactivate', args=[vehicle.id]))
+
+        self.assertRedirects(response, reverse('portal:vehicles'))
+        vehicle.refresh_from_db()
+        self.assertFalse(vehicle.is_active)
