@@ -1,8 +1,10 @@
+from datetime import date
+
 from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import MemberProfile, Vehicle
+from .models import MemberProfile, MonthlyQuota, PaymentRecord, Vehicle
 
 
 class HomePageTests(TestCase):
@@ -86,3 +88,93 @@ class VehicleFlowTests(TestCase):
         self.assertRedirects(response, reverse('portal:vehicles'))
         vehicle.refresh_from_db()
         self.assertFalse(vehicle.is_active)
+
+
+class QuotaAndTreasuryFlowTests(TestCase):
+    def setUp(self):
+        self.member_user = User.objects.create_user(username='carlos', password='SenhaForte#2026')
+        self.member_profile = MemberProfile.objects.create(
+            user=self.member_user,
+            member_number='ANATA-004',
+            role=MemberProfile.Role.MEMBER,
+        )
+        self.treasurer_user = User.objects.create_user(username='tesoureiro', password='SenhaForte#2026')
+        self.treasurer_profile = MemberProfile.objects.create(
+            user=self.treasurer_user,
+            member_number='ANATA-T01',
+            role=MemberProfile.Role.TREASURER,
+        )
+        self.vehicle = Vehicle.objects.create(
+            owner=self.member_profile,
+            plate_number='LD-88-11-CC',
+            model='Kia Rio',
+            year=2021,
+            color='Preto',
+        )
+
+    def test_treasurer_can_generate_quotas_for_active_vehicles(self):
+        self.client.login(username='tesoureiro', password='SenhaForte#2026')
+
+        response = self.client.post(
+            reverse('portal:treasurer_dashboard'),
+            {
+                'action': 'generate_quotas',
+                'reference_month': '2026-06-01',
+                'due_date': '2026-06-10',
+                'amount': '25000.00',
+            },
+        )
+
+        self.assertRedirects(response, reverse('portal:treasurer_dashboard'))
+        self.assertTrue(
+            MonthlyQuota.objects.filter(vehicle=self.vehicle, reference_month=date(2026, 6, 1)).exists()
+        )
+
+    def test_member_can_simulate_payment_for_pending_quota(self):
+        quota = MonthlyQuota.objects.create(
+            vehicle=self.vehicle,
+            reference_month=date(2026, 6, 1),
+            due_date=date(2026, 6, 10),
+            amount_due='25000.00',
+            status=MonthlyQuota.Status.PENDING,
+        )
+        self.client.login(username='carlos', password='SenhaForte#2026')
+
+        response = self.client.post(
+            reverse('portal:simulate_payment', args=[quota.id]),
+            {
+                'method': PaymentRecord.Method.MULTICAIXA,
+                'notes': 'Pagamento de teste',
+            },
+        )
+
+        self.assertRedirects(response, reverse('portal:quotas'))
+        quota.refresh_from_db()
+        self.assertEqual(quota.status, MonthlyQuota.Status.AWAITING_VALIDATION)
+        self.assertTrue(PaymentRecord.objects.filter(quota=quota, status=PaymentRecord.Status.SIMULATED).exists())
+
+    def test_treasurer_can_validate_simulated_payment(self):
+        quota = MonthlyQuota.objects.create(
+            vehicle=self.vehicle,
+            reference_month=date(2026, 6, 1),
+            due_date=date(2026, 6, 10),
+            amount_due='25000.00',
+            status=MonthlyQuota.Status.AWAITING_VALIDATION,
+        )
+        payment = PaymentRecord.objects.create(
+            quota=quota,
+            method=PaymentRecord.Method.CASH,
+            status=PaymentRecord.Status.SIMULATED,
+            amount_paid='25000.00',
+            payment_date='2026-06-02T10:00:00Z',
+        )
+        self.client.login(username='tesoureiro', password='SenhaForte#2026')
+
+        response = self.client.post(reverse('portal:validate_payment', args=[payment.id]))
+
+        self.assertRedirects(response, reverse('portal:treasurer_dashboard'))
+        payment.refresh_from_db()
+        quota.refresh_from_db()
+        self.assertEqual(payment.status, PaymentRecord.Status.VALIDATED)
+        self.assertEqual(payment.validated_by, self.treasurer_profile)
+        self.assertEqual(quota.status, MonthlyQuota.Status.PAID)

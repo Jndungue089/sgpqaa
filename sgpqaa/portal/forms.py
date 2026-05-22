@@ -1,8 +1,11 @@
+from decimal import Decimal
+
 from django import forms
 from django.contrib.auth import authenticate, get_user_model
 from django.contrib.auth.password_validation import validate_password
+from django.utils import timezone
 
-from .models import MemberProfile, Vehicle
+from .models import MemberProfile, PaymentRecord, Vehicle
 
 User = get_user_model()
 
@@ -107,3 +110,34 @@ class VehicleForm(forms.ModelForm):
             raise forms.ValidationError('Ja existe uma viatura com esta matricula.')
 
         return plate_number
+
+
+class QuotaGenerationForm(forms.Form):
+    reference_month = forms.DateField(
+        label='Mes de referencia',
+        widget=forms.DateInput(attrs={'type': 'date'}),
+        initial=timezone.now().date().replace(day=1),
+    )
+    due_date = forms.DateField(
+        label='Data de vencimento',
+        widget=forms.DateInput(attrs={'type': 'date'}),
+        initial=timezone.now().date(),
+    )
+    amount = forms.DecimalField(
+        label='Valor da quota',
+        max_digits=10,
+        decimal_places=2,
+        min_value=Decimal('0.01'),
+    )
+
+
+class PaymentSimulationForm(forms.Form):
+    method = forms.ChoiceField(
+        label='Metodo de pagamento',
+        choices=PaymentRecord.Method.choices,
+    )
+    notes = forms.CharField(
+        label='Observacoes',
+        required=False,
+        widget=forms.Textarea(attrs={'rows': 3}),
+    )

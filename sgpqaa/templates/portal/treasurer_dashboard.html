@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Tesouraria | SGPQAA{% endblock %}
+
+{% block body %}
+<main class="page-shell">
+    <section class="dashboard-header">
+        <div>
+            <p class="eyebrow">Dashboard do tesoureiro</p>
+            <h1>Controlar quotas e validar pagamentos.</h1>
+            <p class="lead">Esta area centraliza a geracao de quotas para viaturas activas e a validacao dos pagamentos simulados pelos associados.</p>
+        </div>
+        <div class="dashboard-actions">
+            <a class="button button-secondary" href="{% url 'portal:logout' %}">Terminar sessao</a>
+        </div>
+    </section>
+
+    <section class="info-strip">
+        <article>
+            <h3>{{ vehicles_total }}</h3>
+            <p>viaturas activas</p>
+        </article>
+        <article>
+            <h3>{{ quotas_pending_total }}</h3>
+            <p>quotas pendentes</p>
+        </article>
+        <article>
+            <h3>{{ payments_waiting_total }}</h3>
+            <p>pagamentos a validar</p>
+        </article>
+    </section>
+
+    <section class="vehicle-layout">
+        <form method="post" class="auth-form vehicle-form-panel">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="generate_quotas">
+            <h2>Gerar quotas</h2>
+            {% if generation_form.non_field_errors %}
+                <div class="form-error">{{ generation_form.non_field_errors }}</div>
+            {% endif %}
+            {% for field in generation_form %}
+                <label class="field-group">
+                    <span>{{ field.label }}</span>
+                    {{ field }}
+                    {% if field.errors %}
+                        <small class="field-error">{{ field.errors|join:", " }}</small>
+                    {% endif %}
+                </label>
+            {% endfor %}
+            <button type="submit" class="button button-primary button-full">Gerar quotas do periodo</button>
+        </form>
+
+        <section class="vehicle-list-panel">
+            <div class="section-heading vehicle-heading">
+                <p class="eyebrow">Pagamentos pendentes</p>
+                <h2>Aguardam validacao</h2>
+            </div>
+            <div class="vehicle-card-list">
+                {% for payment in pending_payments %}
+                    <article class="vehicle-card">
+                        <div>
+                            <h3>{{ payment.quota.vehicle.plate_number }} - {{ payment.quota.reference_month|date:"m/Y" }}</h3>
+                            <p>{{ payment.quota.vehicle.owner.user.first_name|default:payment.quota.vehicle.owner.user.username }} | {{ payment.get_method_display }} | {{ payment.amount_paid }} AOA</p>
+                            <span class="vehicle-status">
+                                {% if payment.simulated_reference %}{{ payment.simulated_reference }}{% else %}Pagamento em dinheiro{% endif %}
+                            </span>
+                        </div>
+                        <form method="post" action="{% url 'portal:validate_payment' payment.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="button button-primary">Validar</button>
+                        </form>
+                    </article>
+                {% empty %}
+                    <article class="vehicle-card">
+                        <div>
+                            <h3>Sem pagamentos pendentes</h3>
+                            <p>Neste momento nao existem pagamentos simulados a aguardar validacao.</p>
+                        </div>
+                    </article>
+                {% endfor %}
+            </div>
+        </section>
+    </section>
+
+    <section class="dashboard-preview">
+        <div class="section-heading">
+            <p class="eyebrow">Quotas recentes</p>
+            <h2>Ultimas quotas geradas no sistema</h2>
+        </div>
+        <div class="roadmap-grid dashboard-grid">
+            {% for quota in recent_quotas %}
+                <article>
+                    <h3>{{ quota.vehicle.plate_number }}</h3>
+                    <p>{{ quota.vehicle.owner.user.first_name|default:quota.vehicle.owner.user.username }} | {{ quota.reference_month|date:"m/Y" }} | {{ quota.get_status_display }}</p>
+                </article>
+            {% empty %}
+                <article>
+                    <h3>Sem quotas</h3>
+                    <p>Ainda nao existem quotas geradas no sistema.</p>
+                </article>
+            {% endfor %}
+        </div>
+    </section>
+</main>
+{% endblock %}

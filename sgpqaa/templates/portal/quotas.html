@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Quotas | SGPQAA{% endblock %}
+
+{% block body %}
+<main class="page-shell">
+    <section class="dashboard-header">
+        <div>
+            <p class="eyebrow">Quotas mensais</p>
+            <h1>Acompanhar quotas e pagamentos.</h1>
+            <p class="lead">Veja as quotas geradas a partir das suas viaturas e simule o pagamento quando estiver disponivel.</p>
+        </div>
+        <div class="dashboard-actions">
+            <a class="button button-secondary" href="{% url 'portal:dashboard' %}">Voltar ao dashboard</a>
+        </div>
+    </section>
+
+    <section class="vehicle-list-panel">
+        <div class="section-heading vehicle-heading">
+            <p class="eyebrow">Lista de quotas</p>
+            <h2>Quotas do associado {{ profile.member_number }}</h2>
+        </div>
+
+        <div class="quota-card-list">
+            {% for quota in quotas %}
+                <article class="vehicle-card">
+                    <div>
+                        <h3>{{ quota.vehicle.plate_number }} - {{ quota.reference_month|date:"m/Y" }}</h3>
+                        <p>Vencimento: {{ quota.due_date|date:"d/m/Y" }} | Valor: {{ quota.amount_due }} AOA</p>
+                        <span class="vehicle-status">{{ quota.get_status_display }}</span>
+                    </div>
+                    {% if quota.status == 'pending' or quota.status == 'overdue' %}
+                        <a class="button button-primary" href="{% url 'portal:simulate_payment' quota.id %}">Simular pagamento</a>
+                    {% else %}
+                        <span class="quota-note">Acompanhe a situacao no painel.</span>
+                    {% endif %}
+                </article>
+            {% empty %}
+                <article class="vehicle-card">
+                    <div>
+                        <h3>Sem quotas geradas</h3>
+                        <p>O tesoureiro ainda nao gerou quotas para as suas viaturas activas.</p>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    </section>
+</main>
+{% endblock %}

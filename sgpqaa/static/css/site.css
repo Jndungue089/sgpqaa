@@ -298,7 +298,23 @@ h3 {
     color: var(--text);
 }
 
+.field-group select,
+.field-group textarea {
+    width: 100%;
+    padding: 0.8rem 0.95rem;
+    border-radius: 14px;
+    border: 1px solid rgba(31, 26, 23, 0.15);
+    background: #fff;
+    color: var(--text);
+}
+
 .field-group input:focus {
+    outline: 2px solid rgba(182, 77, 27, 0.18);
+    border-color: var(--primary);
+}
+
+.field-group select:focus,
+.field-group textarea:focus {
     outline: 2px solid rgba(182, 77, 27, 0.18);
     border-color: var(--primary);
 }
@@ -343,6 +359,17 @@ h3 {
 .dashboard-grid h3 {
     font-size: 2rem;
     margin-top: 0;
+}
+
+.payment-summary {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    border-radius: 20px;
+    background: var(--surface-strong);
+}
+
+.payment-summary p {
+    margin: 0.5rem 0;
 }
 
 .vehicle-layout {
@@ -406,6 +433,16 @@ h3 {
     color: var(--accent);
     font-size: 0.9rem;
     font-weight: 700;
+}
+
+.quota-card-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.quota-note {
+    color: var(--muted);
+    font-weight: 600;
 }
 
 .cta-panel {

@@ -12,6 +12,7 @@
         </div>
         <div class="dashboard-actions">
             <a class="button button-primary" href="{% url 'portal:vehicles' %}">Gerir viaturas</a>
+            <a class="button button-primary" href="{% url 'portal:quotas' %}">Ver quotas</a>
             <a class="button button-secondary" href="{% url 'portal:home' %}">Ver landing page</a>
             <a class="button button-secondary" href="{% url 'portal:logout' %}">Terminar sessao</a>
         </div>
@@ -66,6 +67,26 @@
                 <article>
                     <h3>Sem viaturas</h3>
                     <p>Ainda nao existe nenhuma viatura registada no seu perfil.</p>
+                </article>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section class="dashboard-preview">
+        <div class="section-heading">
+            <p class="eyebrow">Quotas recentes</p>
+            <h2>Estado actual das suas quotas</h2>
+        </div>
+        <div class="roadmap-grid dashboard-grid">
+            {% for quota in recent_quotas %}
+                <article>
+                    <h3>{{ quota.vehicle.plate_number }}</h3>
+                    <p>{{ quota.reference_month|date:"m/Y" }} - {{ quota.get_status_display }} - {{ quota.amount_due }} AOA</p>
+                </article>
+            {% empty %}
+                <article>
+                    <h3>Sem quotas</h3>
+                    <p>Ainda nao foram geradas quotas para as suas viaturas.</p>
                 </article>
             {% endfor %}
         </div>

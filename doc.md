@@ -1093,7 +1093,289 @@ Em termos simples, esta fase mostra que:
 
 Isto aproxima o projecto de uma situacao real de controlo administrativo.
 
-## 8. Landing page inicial
+## 8. Dashboard do tesoureiro, geracao de quotas e simulacao de pagamento
+
+Esta etapa representa o centro funcional do sistema.
+Aqui deixamos de ter apenas cadastro e autenticacao e passamos a ter um fluxo de cobranca.
+
+### 8.1 Porque foi criada apenas a dashboard do tesoureiro
+
+O pedido desta fase foi criar apenas a dashboard por perfil do tesoureiro.
+
+Isto significa:
+
+- o associado continua a ter a sua area simples para ver dados, viaturas e quotas
+- a area realmente especializada por perfil e a do tesoureiro
+
+Esta decisao foi tomada porque, neste momento, o perfil que mais precisa de operacoes
+proprias e o tesoureiro.
+
+Ele e o responsavel por:
+
+- gerar quotas
+- acompanhar pagamentos simulados
+- validar pagamentos
+
+### 8.2 Qual e o papel do tesoureiro no sistema
+
+O tesoureiro e o perfil operacional financeiro do sistema.
+
+Em linguagem simples:
+
+- o associado usa o sistema para consultar e simular o pagamento
+- o tesoureiro usa o sistema para controlar e confirmar
+
+Isto cria uma separacao importante de responsabilidades:
+
+- o associado nao confirma o proprio pagamento
+- o tesoureiro nao regista viaturas em nome do associado
+
+Cada actor tem um papel proprio.
+
+### 8.3 O que foi implementado nesta etapa
+
+Foi implementado:
+
+- dashboard do tesoureiro
+- formulario de geracao de quotas
+- geracao de quotas para viaturas activas
+- area do associado para ver quotas
+- simulacao de pagamento a partir das quotas geradas
+- validacao do pagamento pelo tesoureiro
+
+### 8.4 Como funciona a geracao de quotas
+
+A geracao de quotas parte das viaturas activas ja registadas.
+
+O tesoureiro informa:
+
+- mes de referencia
+- data de vencimento
+- valor da quota
+
+Depois disso, o sistema faz o seguinte:
+
+1. procura todas as viaturas activas
+2. para cada viatura, cria uma quota mensal
+3. liga essa quota directamente a uma viatura
+4. deixa a quota com estado inicial `Pendente`
+
+### 8.5 Porque a quota e gerada por viatura
+
+Esta foi uma decisao central do projecto.
+
+Nao geramos a quota apenas por associado.
+Geramos a quota por viatura.
+
+Motivo:
+
+- o problema real esta ligado ao carro registado
+- um associado pode ter mais de uma viatura
+- cada viatura pode ter a sua propria sequencia de cobrancas
+
+Isto melhora:
+
+- controlo
+- organizacao
+- historico
+- clareza para relatorios
+
+### 8.6 Como evitamos quotas duplicadas
+
+Uma mesma viatura nao pode receber duas quotas para o mesmo mes.
+
+Essa regra foi definida no desenho da base de dados e tambem respeitada na logica do sistema.
+
+Em termos práticos:
+
+- se ja existir quota para aquela viatura naquele mes, o sistema nao cria outra
+
+Isto evita:
+
+- cobranca duplicada
+- confusao no historico
+- erros de tesouraria
+
+### 8.7 O que o associado ve na parte de quotas
+
+O associado agora pode abrir a sua pagina de quotas e ver:
+
+- a viatura a que a quota pertence
+- o mes de referencia
+- o vencimento
+- o valor
+- o estado da quota
+
+Isto da mais transparencia ao sistema.
+
+### 8.8 O que significa simulacao de pagamento
+
+Como este projecto nao tera integracao real com bancos ou Multicaixa, o pagamento foi
+construido como simulacao.
+
+Simulacao de pagamento significa:
+
+- o sistema nao movimenta dinheiro real
+- o sistema regista que o utilizador declarou ter feito o pagamento
+- o tesoureiro depois valida esse registo
+
+Ou seja:
+
+o sistema simula o comportamento de um pagamento real sem depender de uma rede financeira real.
+
+### 8.9 Como a simulacao de pagamento funciona
+
+Quando a quota esta com estado `Pendente` ou `Em atraso`, o associado pode abrir a pagina
+de simulacao e escolher um metodo de pagamento.
+
+Os metodos disponiveis nesta fase sao:
+
+- Dinheiro
+- Multicaixa
+
+Depois disso, o sistema:
+
+1. cria um `PaymentRecord`
+2. guarda o valor pago
+3. guarda a data do registo
+4. guarda observacoes, se existirem
+5. gera uma referencia simulada quando o metodo for Multicaixa
+6. altera a quota para `Aguarda validacao`
+
+### 8.10 O que e a referencia simulada
+
+Quando o pagamento e marcado como Multicaixa, o sistema gera um codigo interno de simulacao.
+
+Esse codigo existe para dar mais realismo ao fluxo.
+
+Ele ajuda a demonstrar:
+
+- que o sistema pode identificar um pagamento
+- que o pagamento pode ter um codigo de acompanhamento
+- que existe um registo independente da simples mudanca de estado
+
+### 8.11 Porque o pagamento nao vai directo para `Pago`
+
+Isto tambem foi uma decisao importante.
+
+Quando o associado simula o pagamento, a quota nao passa logo para `Paga`.
+Ela passa primeiro para `Aguarda validacao`.
+
+Motivo:
+
+- em contexto real, a tesouraria precisa confirmar
+- evita que o associado marque sozinho qualquer quota como paga
+- cria controlo e verificacao
+
+### 8.12 Como funciona a validacao pelo tesoureiro
+
+Na dashboard do tesoureiro aparece uma lista de pagamentos simulados pendentes.
+
+Quando o tesoureiro clica em validar:
+
+1. o `PaymentRecord` passa para `Validado`
+2. o sistema guarda quem validou
+3. o sistema guarda a data da validacao
+4. a `MonthlyQuota` passa para `Paga`
+
+Isto fecha o ciclo da cobranca.
+
+### 8.13 Estados usados neste fluxo
+
+#### Estados da quota
+
+- `Pendente`
+- `Aguarda validacao`
+- `Paga`
+- `Em atraso`
+
+#### Estados do pagamento
+
+- `Simulado`
+- `Validado`
+- `Rejeitado`
+
+### 8.14 Porque usamos estados
+
+Os estados foram escolhidos porque um processo financeiro precisa mostrar em que fase cada
+item se encontra.
+
+Sem estados, o sistema teria menos clareza.
+
+Com estados, o sistema consegue responder perguntas como:
+
+- esta quota ja foi gerada?
+- o associado ja disse que pagou?
+- o tesoureiro ja confirmou?
+- este pagamento esta concluido ou ainda esta em analise?
+
+### 8.15 Decisoes tecnicas tomadas nesta etapa
+
+#### Decisao 1: separar geracao de quota da validacao de pagamento
+
+Motivo:
+
+- uma cobranca e uma coisa
+- a confirmacao do pagamento e outra
+
+Isto torna o sistema mais fiel a realidade.
+
+#### Decisao 2: permitir simulacao apenas em quotas disponiveis
+
+O associado nao pode simular pagamento de uma quota que ja esteja paga ou em validacao.
+
+Motivo:
+
+- evita repeticao
+- evita duplicidade de pedidos
+- protege a coerencia dos dados
+
+#### Decisao 3: dashboard especializada para o tesoureiro
+
+O tesoureiro recebeu uma area propria porque ele executa tarefas diferentes do associado.
+
+Motivo:
+
+- separar responsabilidades
+- dar foco ao trabalho financeiro
+- facilitar a demonstracao da logica por perfil
+
+#### Decisao 4: validar pagamento no servidor
+
+A mudanca de estados e feita no servidor, e nao apenas na interface.
+
+Motivo:
+
+- garante consistencia
+- melhora seguranca
+- evita alteracoes falsas apenas no browser
+
+### 8.16 Fluxo completo desta fase
+
+Em linguagem simples, o processo agora e este:
+
+1. o associado regista a viatura
+2. o tesoureiro gera a quota dessa viatura
+3. o associado ve a quota no seu painel
+4. o associado simula o pagamento
+5. a quota fica a aguardar validacao
+6. o tesoureiro valida
+7. a quota passa para paga
+
+### 8.17 O que a banca pode entender desta etapa
+
+Esta parte mostra que o sistema ja faz mais do que guardar dados.
+
+Ele ja controla um processo real:
+
+- cadastro
+- cobranca
+- declaracao de pagamento
+- validacao financeira
+
+Isto da mais maturidade ao projecto e demonstra valor pratico.
+
+## 9. Landing page inicial
 
 A landing page foi criada para ser a porta de entrada do sistema.
 Ela mostra:
@@ -1107,7 +1389,7 @@ Ela mostra:
 Esta pagina ajuda muito na apresentacao porque, antes mesmo do login, a banca consegue
 entender o que esta a ser demonstrado.
 
-## 9. Etapa de autenticacao implementada
+## 10. Etapa de autenticacao implementada
 
 Nesta etapa, passamos a ter um fluxo real de entrada no sistema.
 
@@ -1293,7 +1575,7 @@ A decisao tomada foi:
 - o papel de tesoureiro e atribuido apenas pela administracao
 - o administrador e quem promove esse utilizador no sistema
 
-## 10. Historico de alteracoes
+## 11. Historico de alteracoes
 
 ### Alteracao 1
 
@@ -1428,7 +1710,26 @@ As viaturas passaram a ser tratadas como base da geracao de quotas. A remocao fo
 desactivacao logica, e nao por apagamento fisico, para preservar historico e manter o
 sistema preparado para as proximas fases.
 
-## 11. Proximos passos previstos
+### Alteracao 9
+
+Data: 22 de Maio de 2026
+
+Foi feito:
+
+- criacao da dashboard do tesoureiro
+- implementacao da geracao de quotas a partir das viaturas activas
+- criacao da pagina de quotas do associado
+- implementacao da simulacao de pagamento
+- implementacao da validacao do pagamento pelo tesoureiro
+- explicacao detalhada de toda esta logica no documento
+
+Decisao:
+
+O sistema passou a tratar a quota como elemento financeiro central do processo. O tesoureiro
+ficou responsavel pela geracao e validacao, enquanto o associado ficou responsavel apenas
+pela simulacao do pagamento e pelo acompanhamento das suas proprias quotas.
+
+## 12. Proximos passos previstos
 
 Nas proximas etapas, vamos construir:
 
