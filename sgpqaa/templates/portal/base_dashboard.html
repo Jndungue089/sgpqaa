@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block body %}
+<div class="app-layout">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <span class="sidebar-brand">ANATA</span>
+        </div>
+        <nav class="sidebar-nav">
+            <p class="nav-label">Menu</p>
+            {% if request.user.member_profile.role == 'treasurer' or request.user.member_profile.role == 'admin' %}
+            <a href="{% url 'portal:treasurer_dashboard' %}" class="nav-link">Dashboard</a>
+            <a href="{% url 'portal:treasury_reports' %}" class="nav-link">Relatorios</a>
+            {% else %}
+            <a href="{% url 'portal:dashboard' %}" class="nav-link">Dashboard</a>
+            <a href="{% url 'portal:quotas' %}" class="nav-link">Quotas</a>
+            <a href="{% url 'portal:vehicles' %}" class="nav-link">Viaturas</a>
+            <a href="{% url 'portal:payment_history' %}" class="nav-link">Pagamentos</a>
+            {% endif %}
+        </nav>
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <strong>{{ request.user.first_name|default:request.user.username }}</strong>
+                <span>{{ request.user.member_profile.get_role_display }}</span>
+            </div>
+            <a href="{% url 'portal:logout' %}" class="nav-link text-danger">Terminar sessao</a>
+        </div>
+    </aside>
+    <main class="app-content">
+        {% block dashboard_content %}{% endblock %}
+    </main>
+</div>
+{% endblock %}
