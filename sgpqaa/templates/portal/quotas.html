@@ -8,9 +8,13 @@
         <div>
             <p class="eyebrow">Quotas mensais</p>
             <h1>Acompanhar quotas e submeter comprovativos.</h1>
-            <p class="lead">Veja as quotas geradas a partir das suas viaturas e envie o comprovante de transferencia bancaria quando o pagamento for feito.</p>
+            <p class="lead">Veja as quotas geradas para a sua conta e envie o comprovante de transferencia bancaria quando o pagamento for feito.</p>
         </div>
         <div class="dashboard-actions">
+            <form action="{% url 'portal:generate_advance_quota' %}" method="post" style="display: inline-block;">
+                {% csrf_token %}
+                <button type="submit" class="button button-primary">Adiantar proxima quota</button>
+            </form>
             <a class="button button-secondary" href="{% url 'portal:dashboard' %}">Voltar ao dashboard</a>
         </div>
     </section>
@@ -25,7 +29,7 @@
             {% for quota in quotas %}
                 <article class="vehicle-card">
                     <div>
-                        <h3>{{ quota.vehicle.plate_number }} - {{ quota.reference_month|date:"m/Y" }}</h3>
+                        <h3>Quota de {{ quota.reference_month|date:"m/Y" }}</h3>
                         <p>Vencimento: {{ quota.due_date|date:"d/m/Y" }} | Valor: {{ quota.amount_due }} AOA</p>
                         <span class="vehicle-status">{{ quota.get_status_display }}</span>
                     </div>
@@ -39,7 +43,7 @@
                 <article class="vehicle-card">
                     <div>
                         <h3>Sem quotas geradas</h3>
-                        <p>O tesoureiro ainda nao gerou quotas para as suas viaturas activas.</p>
+                        <p>O tesoureiro ainda nao gerou quotas para a sua conta.</p>
                     </div>
                 </article>
             {% endfor %}

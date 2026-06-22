@@ -18,8 +18,8 @@
 
     <section class="info-strip">
         <article>
-            <h3>{{ vehicles_total }}</h3>
-            <p>viaturas activas</p>
+            <h3>{{ members_total }}</h3>
+            <p>associados activos</p>
         </article>
         <article>
             <h3>{{ quotas_pending_total }}</h3>
@@ -44,7 +44,7 @@
                     <p><strong>Vigora desde:</strong> {{ active_config.effective_from|date:"d/m/Y" }}</p>
                     <p><strong>Multa:</strong> {{ active_config.late_fee_percentage }}%</p>
                 </div>
-                <p class="quota-note">Sempre que o administrador activar uma configuracao, o sistema gera automaticamente quotas para as viaturas activas.</p>
+                <p class="quota-note">Sempre que o administrador activar uma configuracao, o sistema gera automaticamente quotas para os associados activos.</p>
             {% else %}
                 <div class="form-error">
                     Ainda nao existe configuracao activa de quota. O administrador deve definir o valor no painel admin.
@@ -61,8 +61,8 @@
                 {% for payment in pending_payments %}
                     <article class="vehicle-card">
                         <div>
-                            <h3>{{ payment.quota.vehicle.plate_number }} - {{ payment.quota.reference_month|date:"m/Y" }}</h3>
-                            <p>{{ payment.quota.vehicle.owner.user.first_name|default:payment.quota.vehicle.owner.user.username }} | {{ payment.get_method_display }} | {{ payment.amount_paid }} AOA</p>
+                            <h3>{{ payment.quota.member.member_number }} - {{ payment.quota.reference_month|date:"m/Y" }}</h3>
+                            <p>{{ payment.quota.member.user.first_name|default:payment.quota.member.user.username }} | {{ payment.get_method_display }} | {{ payment.amount_paid }} AOA</p>
                             <span class="vehicle-status">
                                 {% if payment.simulated_reference %}{{ payment.simulated_reference }}{% endif %}
                             </span>
@@ -90,8 +90,8 @@
             {% for quota in unpaid_quotas %}
                 <article class="vehicle-card">
                     <div>
-                        <h3>{{ quota.vehicle.plate_number }} - {{ quota.reference_month|date:"m/Y" }}</h3>
-                        <p>{{ quota.vehicle.owner.user.first_name|default:quota.vehicle.owner.user.username }} | {{ quota.amount_due }} AOA | {{ quota.get_status_display }}</p>
+                        <h3>{{ quota.member.member_number }} - {{ quota.reference_month|date:"m/Y" }}</h3>
+                        <p>{{ quota.member.user.first_name|default:quota.member.user.username }} | {{ quota.amount_due }} AOA | {{ quota.get_status_display }}</p>
                     </div>
                     <form method="post" action="{% url 'portal:mark_cash_payment' quota.id %}">
                         {% csrf_token %}
@@ -117,8 +117,8 @@
         <div class="roadmap-grid dashboard-grid">
             {% for quota in recent_quotas %}
                 <article>
-                    <h3>{{ quota.vehicle.plate_number }}</h3>
-                    <p>{{ quota.vehicle.owner.user.first_name|default:quota.vehicle.owner.user.username }} | {{ quota.reference_month|date:"m/Y" }} | {{ quota.get_status_display }}</p>
+                    <h3>{{ quota.member.member_number }}</h3>
+                    <p>{{ quota.member.user.first_name|default:quota.member.user.username }} | {{ quota.reference_month|date:"m/Y" }} | {{ quota.get_status_display }}</p>
                 </article>
             {% empty %}
                 <article>

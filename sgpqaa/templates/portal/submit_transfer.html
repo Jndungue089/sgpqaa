@@ -10,7 +10,14 @@
             <h1>Enviar comprovante de pagamento.</h1>
             <p class="lead">O associado faz o pagamento fora do sistema e depois envia o comprovante para que o tesoureiro possa validar e marcar a quota como paga.</p>
             <div class="payment-summary">
-                <p><strong>Viatura:</strong> {{ quota.vehicle.plate_number }}</p>
+                <p><strong>Associado:</strong> {{ quota.member.member_number }}</p>
+                {% if quota.member.vehicles.all %}
+                    <p><strong>Viatura(s):</strong> 
+                        {% for v in quota.member.vehicles.all %}
+                            {{ v.plate_number }}{% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </p>
+                {% endif %}
                 <p><strong>Mes:</strong> {{ quota.reference_month|date:"m/Y" }}</p>
                 <p><strong>Valor:</strong> {{ quota.amount_due }} AOA</p>
                 <p><strong>Vencimento:</strong> {{ quota.due_date|date:"d/m/Y" }}</p>

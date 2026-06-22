@@ -1,8 +1,8 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 
-from .models import QuotaConfig, Vehicle
-from .services import ensure_vehicle_has_current_month_quota, generate_quotas_from_active_config
+from .models import QuotaConfig, Vehicle, MemberProfile
+from .services import ensure_member_has_current_month_quota, generate_quotas_from_active_config
 
 
 @receiver(post_save, sender=QuotaConfig)
@@ -12,7 +12,13 @@ def quota_config_post_save(sender, instance, created, **kwargs):
         generate_quotas_from_active_config(reference_month=instance.effective_from)
 
 
+@receiver(post_save, sender=MemberProfile)
+def member_profile_post_save(sender, instance, created, **kwargs):
+    if created and instance.is_active_member and instance.role == MemberProfile.Role.MEMBER:
+        ensure_member_has_current_month_quota(instance)
+
+
 @receiver(post_save, sender=Vehicle)
 def vehicle_post_save(sender, instance, created, **kwargs):
-    if created and instance.is_active:
-        ensure_vehicle_has_current_month_quota(instance)
+    if created and instance.is_active and instance.owner:
+        ensure_member_has_current_month_quota(instance.owner)

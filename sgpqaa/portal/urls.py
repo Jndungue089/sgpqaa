@@ -15,6 +15,7 @@ urlpatterns = [
     path('viaturas/', views.vehicle_list_create, name='vehicles'),
     path('viaturas/<int:vehicle_id>/desactivar/', views.vehicle_deactivate, name='vehicle_deactivate'),
     path('quotas/', views.quota_list, name='quotas'),
+    path('quotas/adiantar/', views.generate_advance_quota, name='generate_advance_quota'),
     path('pagamentos/historico/', views.payment_history, name='payment_history'),
     path('quotas/<int:quota_id>/submeter-transferencia/', views.simulate_payment, name='simulate_payment'),
     path('pagamentos/<int:payment_id>/rever/', views.review_payment, name='review_payment'),

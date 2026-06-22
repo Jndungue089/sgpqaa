@@ -142,7 +142,7 @@ class QuotaAndTreasuryFlowTests(TestCase):
         )
 
         self.assertTrue(
-            MonthlyQuota.objects.filter(vehicle=self.vehicle, reference_month=date(2026, 6, 1)).exists()
+            MonthlyQuota.objects.filter(member=self.member_profile, reference_month=date(2026, 6, 1)).exists()
         )
 
     def test_treasury_report_shows_overdue_quota_with_fine(self):
@@ -153,7 +153,7 @@ class QuotaAndTreasuryFlowTests(TestCase):
             is_active=True,
         )
         quota = MonthlyQuota.objects.create(
-            vehicle=self.vehicle,
+            member=self.member_profile,
             reference_month=date(2026, 5, 1),
             due_date=date(2026, 5, 10),
             amount_due='25000.00',
@@ -178,7 +178,7 @@ class QuotaAndTreasuryFlowTests(TestCase):
 
     def test_member_dashboard_shows_available_quota_notice(self):
         MonthlyQuota.objects.create(
-            vehicle=self.vehicle,
+            member=self.member_profile,
             reference_month=date.today().replace(day=1),
             due_date=date.today(),
             amount_due='25000.00',
@@ -193,7 +193,7 @@ class QuotaAndTreasuryFlowTests(TestCase):
 
     def test_member_can_submit_transfer_proof_for_pending_quota(self):
         quota = MonthlyQuota.objects.create(
-            vehicle=self.vehicle,
+            member=self.member_profile,
             reference_month=date(2026, 6, 1),
             due_date=date(2026, 6, 10),
             amount_due='25000.00',
@@ -217,7 +217,7 @@ class QuotaAndTreasuryFlowTests(TestCase):
 
     def test_member_cannot_submit_non_pdf_transfer_proof(self):
         quota = MonthlyQuota.objects.create(
-            vehicle=self.vehicle,
+            member=self.member_profile,
             reference_month=date(2026, 6, 1),
             due_date=date(2026, 6, 10),
             amount_due='25000.00',
@@ -239,7 +239,7 @@ class QuotaAndTreasuryFlowTests(TestCase):
 
     def test_treasurer_can_validate_transfer_payment(self):
         quota = MonthlyQuota.objects.create(
-            vehicle=self.vehicle,
+            member=self.member_profile,
             reference_month=date(2026, 6, 1),
             due_date=date(2026, 6, 10),
             amount_due='25000.00',
@@ -269,7 +269,7 @@ class QuotaAndTreasuryFlowTests(TestCase):
 
     def test_treasurer_can_mark_cash_payment_as_paid(self):
         quota = MonthlyQuota.objects.create(
-            vehicle=self.vehicle,
+            member=self.member_profile,
             reference_month=date(2026, 6, 1),
             due_date=date(2026, 6, 10),
             amount_due='25000.00',
@@ -288,7 +288,7 @@ class QuotaAndTreasuryFlowTests(TestCase):
 
     def test_member_can_view_payment_history_and_receipt(self):
         quota = MonthlyQuota.objects.create(
-            vehicle=self.vehicle,
+            member=self.member_profile,
             reference_month=date(2026, 6, 1),
             due_date=date(2026, 6, 10),
             amount_due='25000.00',

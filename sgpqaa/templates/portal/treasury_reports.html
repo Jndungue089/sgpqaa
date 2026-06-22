@@ -58,7 +58,7 @@
             {% for entry in debt_entries %}
                 <article class="vehicle-card">
                     <div>
-                        <h3>{{ entry.quota.vehicle.owner.user.get_full_name|default:entry.quota.vehicle.owner.user.username }} - {{ entry.quota.vehicle.plate_number }}</h3>
+                        <h3>{{ entry.quota.member.user.get_full_name|default:entry.quota.member.user.username }} ({{ entry.quota.member.member_number }})</h3>
                         <p>{{ entry.quota.reference_month|date:"m/Y" }} | vencimento {{ entry.quota.due_date|date:"d/m/Y" }} | {{ entry.quota.get_status_display }}</p>
                         <p>Base: {{ entry.quota.amount_due }} AOA | Multa: {{ entry.fine_amount }} AOA | Total: {{ entry.total_due }} AOA</p>
                         {% if entry.days_overdue > 0 %}

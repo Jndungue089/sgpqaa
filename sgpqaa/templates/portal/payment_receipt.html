@@ -24,14 +24,23 @@
             </article>
             <article>
                 <h3>Associado</h3>
-                <p><strong>Nome:</strong> {{ payment.quota.vehicle.owner.user.get_full_name|default:payment.quota.vehicle.owner.user.username }}</p>
-                <p><strong>Numero:</strong> {{ payment.quota.vehicle.owner.member_number }}</p>
+                <p><strong>Nome:</strong> {{ payment.quota.member.user.get_full_name|default:payment.quota.member.user.username }}</p>
+                <p><strong>Numero:</strong> {{ payment.quota.member.member_number }}</p>
             </article>
+            {% if payment.quota.member.vehicles.all %}
             <article>
                 <h3>Viatura</h3>
-                <p><strong>Matricula:</strong> {{ payment.quota.vehicle.plate_number }}</p>
-                <p><strong>Modelo:</strong> {{ payment.quota.vehicle.model }}</p>
+                {% for vehicle in payment.quota.member.vehicles.all %}
+                <p><strong>Matricula:</strong> {{ vehicle.plate_number }}</p>
+                <p><strong>Modelo:</strong> {{ vehicle.model }}</p>
+                {% endfor %}
             </article>
+            {% else %}
+            <article>
+                <h3>Viatura</h3>
+                <p>Nenhuma viatura registada</p>
+            </article>
+            {% endif %}
             <article>
                 <h3>Pagamento</h3>
                 <p><strong>Metodo:</strong> {{ payment.get_method_display }}</p>

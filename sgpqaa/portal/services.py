@@ -4,7 +4,7 @@ from decimal import Decimal
 from django.db import transaction
 from django.utils import timezone
 
-from .models import MonthlyQuota, QuotaConfig, Vehicle
+from .models import MonthlyQuota, QuotaConfig, Vehicle, MemberProfile
 
 MONEY_STEP = Decimal('0.01')
 
@@ -18,9 +18,9 @@ def generate_monthly_quotas(*, reference_month, due_date, amount, generated_auto
     normalized_reference = reference_month.replace(day=1)
     created_count = 0
 
-    for vehicle in Vehicle.objects.filter(is_active=True).select_related('owner'):
+    for member in MemberProfile.objects.filter(is_active_member=True, role=MemberProfile.Role.MEMBER):
         _, created = MonthlyQuota.objects.get_or_create(
-            vehicle=vehicle,
+            member=member,
             reference_month=normalized_reference,
             defaults={
                 'due_date': due_date,
@@ -49,14 +49,14 @@ def generate_quotas_from_active_config(reference_month=None):
     )
 
 
-def ensure_vehicle_has_current_month_quota(vehicle):
+def ensure_member_has_current_month_quota(member):
     config = get_active_quota_config()
-    if not config or not vehicle.is_active:
+    if not config or not member.is_active_member or member.role != MemberProfile.Role.MEMBER:
         return False
 
     reference_month = config.effective_from.replace(day=1)
     _, created = MonthlyQuota.objects.get_or_create(
-        vehicle=vehicle,
+        member=member,
         reference_month=reference_month,
         defaults={
             'due_date': config.effective_from,

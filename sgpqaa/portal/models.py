@@ -33,7 +33,7 @@ class MemberProfile(TimeStampedModel):
 
 
 class Vehicle(TimeStampedModel):
-    owner = models.ForeignKey(MemberProfile, on_delete=models.PROTECT, related_name='vehicles')
+    owner = models.ForeignKey(MemberProfile, on_delete=models.CASCADE, related_name='vehicles')
     plate_number = models.CharField('Matricula', max_length=20, unique=True)
     model = models.CharField('Modelo', max_length=100)
     year = models.PositiveIntegerField('Ano')
@@ -76,7 +76,7 @@ class MonthlyQuota(TimeStampedModel):
         PAID = 'paid', 'Paga'
         OVERDUE = 'overdue', 'Em atraso'
 
-    vehicle = models.ForeignKey(Vehicle, on_delete=models.PROTECT, related_name='monthly_quotas')
+    member = models.ForeignKey(MemberProfile, on_delete=models.CASCADE, related_name='monthly_quotas')
     reference_month = models.DateField('Mes de referencia')
     due_date = models.DateField('Data de vencimento')
     amount_due = models.DecimalField('Valor a pagar', max_digits=10, decimal_places=2)
@@ -86,11 +86,11 @@ class MonthlyQuota(TimeStampedModel):
     class Meta:
         verbose_name = 'quota mensal'
         verbose_name_plural = 'quotas mensais'
-        ordering = ['-reference_month', 'vehicle__plate_number']
-        unique_together = ('vehicle', 'reference_month')
+        ordering = ['-reference_month', 'member__member_number']
+        unique_together = ('member', 'reference_month')
 
     def __str__(self):
-        return f'{self.vehicle.plate_number} - {self.reference_month:%m/%Y}'
+        return f'{self.member.member_number} - {self.reference_month:%m/%Y}'
 
 
 class PaymentRecord(TimeStampedModel):
@@ -104,7 +104,7 @@ class PaymentRecord(TimeStampedModel):
         VALIDATED = 'validated', 'Validado'
         REJECTED = 'rejected', 'Rejeitado'
 
-    quota = models.ForeignKey(MonthlyQuota, on_delete=models.PROTECT, related_name='payments')
+    quota = models.ForeignKey(MonthlyQuota, on_delete=models.CASCADE, related_name='payments')
     method = models.CharField(max_length=20, choices=Method.choices)
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
     amount_paid = models.DecimalField('Valor pago', max_digits=10, decimal_places=2)
@@ -113,7 +113,7 @@ class PaymentRecord(TimeStampedModel):
     proof_file = models.FileField(upload_to='payment_proofs/', blank=True)
     validated_by = models.ForeignKey(
         MemberProfile,
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         null=True,
         blank=True,
         related_name='validated_payments',

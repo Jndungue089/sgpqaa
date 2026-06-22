@@ -58,13 +58,13 @@ class QuotaConfigAdmin(admin.ModelAdmin):
 
 @admin.register(MonthlyQuota)
 class MonthlyQuotaAdmin(admin.ModelAdmin):
-    list_display = ('vehicle', 'reference_month', 'due_date', 'amount_due', 'status')
+    list_display = ('member', 'reference_month', 'due_date', 'amount_due', 'status')
     list_filter = ('status', 'generated_automatically')
-    search_fields = ('vehicle__plate_number',)
+    search_fields = ('member__member_number', 'member__user__username')
 
 
 @admin.register(PaymentRecord)
 class PaymentRecordAdmin(admin.ModelAdmin):
     list_display = ('quota', 'method', 'status', 'amount_paid', 'payment_date')
     list_filter = ('method', 'status')
-    search_fields = ('quota__vehicle__plate_number', 'simulated_reference')
+    search_fields = ('quota__member__member_number', 'simulated_reference')

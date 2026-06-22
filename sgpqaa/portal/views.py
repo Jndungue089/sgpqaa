@@ -39,7 +39,7 @@ def is_admin_profile(profile):
 
 
 def can_access_payment(profile, payment):
-    return ensure_treasurer_access(profile) or payment.quota.vehicle.owner_id == profile.id
+    return ensure_treasurer_access(profile) or payment.quota.member_id == profile.id
 
 
 def home(request):
@@ -87,29 +87,29 @@ def dashboard(request):
 
     current_month = timezone.localdate().replace(day=1)
     available_quota = MonthlyQuota.objects.filter(
-        vehicle__owner=profile,
+        member=profile,
         reference_month=current_month,
         status__in=[
             MonthlyQuota.Status.PENDING,
             MonthlyQuota.Status.OVERDUE,
             MonthlyQuota.Status.AWAITING_VALIDATION,
         ],
-    ).select_related('vehicle').order_by('due_date').first()
+    ).select_related('member').order_by('due_date').first()
     context = {
         'profile': profile,
         'vehicles_count': Vehicle.objects.filter(owner=profile).count(),
-        'quotas_count': MonthlyQuota.objects.filter(vehicle__owner=profile).count(),
-        'payments_count': PaymentRecord.objects.filter(quota__vehicle__owner=profile).count(),
+        'quotas_count': MonthlyQuota.objects.filter(member=profile).count(),
+        'payments_count': PaymentRecord.objects.filter(quota__member=profile).count(),
         'pending_quotas_count': MonthlyQuota.objects.filter(
-            vehicle__owner=profile,
+            member=profile,
             status__in=[MonthlyQuota.Status.PENDING, MonthlyQuota.Status.OVERDUE],
         ).count(),
         'awaiting_validation_count': MonthlyQuota.objects.filter(
-            vehicle__owner=profile,
+            member=profile,
             status=MonthlyQuota.Status.AWAITING_VALIDATION,
         ).count(),
         'recent_vehicles': Vehicle.objects.filter(owner=profile, is_active=True).order_by('-created_at')[:3],
-        'recent_quotas': MonthlyQuota.objects.filter(vehicle__owner=profile).select_related('vehicle')[:5],
+        'recent_quotas': MonthlyQuota.objects.filter(member=profile).select_related('member')[:5],
         'available_quota': available_quota,
     }
     return render(request, 'portal/dashboard.html', context)
@@ -163,7 +163,7 @@ def vehicle_deactivate(request, vehicle_id):
 def quota_list(request):
     profile = get_or_create_profile(request.user)
     generate_quotas_from_active_config()
-    quotas = MonthlyQuota.objects.filter(vehicle__owner=profile).select_related('vehicle')
+    quotas = MonthlyQuota.objects.filter(member=profile).select_related('member')
     paginator = Paginator(quotas, 6)
     page_obj = paginator.get_page(request.GET.get('page'))
     context = {
@@ -178,8 +178,8 @@ def quota_list(request):
 def payment_history(request):
     profile = get_or_create_profile(request.user)
     payments = PaymentRecord.objects.filter(
-        quota__vehicle__owner=profile
-    ).select_related('quota__vehicle', 'validated_by__user')
+        quota__member=profile
+    ).select_related('quota__member', 'validated_by__user')
     paginator = Paginator(payments, 6)
     page_obj = paginator.get_page(request.GET.get('page'))
     return render(
@@ -196,7 +196,7 @@ def payment_history(request):
 @login_required
 def simulate_payment(request, quota_id):
     profile = get_or_create_profile(request.user)
-    quota = get_object_or_404(MonthlyQuota.objects.select_related('vehicle'), pk=quota_id, vehicle__owner=profile)
+    quota = get_object_or_404(MonthlyQuota.objects.select_related('member'), pk=quota_id, member=profile)
 
     if quota.status not in {MonthlyQuota.Status.PENDING, MonthlyQuota.Status.OVERDUE}:
         messages.error(request, 'Esta quota nao esta disponivel para submissao de comprovante.')
@@ -244,11 +244,11 @@ def treasurer_dashboard(request):
     pending_payments = PaymentRecord.objects.filter(
         status=PaymentRecord.Status.SUBMITTED,
         quota__status=MonthlyQuota.Status.AWAITING_VALIDATION,
-    ).select_related('quota__vehicle__owner__user')
-    recent_quotas = MonthlyQuota.objects.select_related('vehicle__owner__user')[:8]
+    ).select_related('quota__member__user')
+    recent_quotas = MonthlyQuota.objects.select_related('member__user')[:8]
     unpaid_quotas = MonthlyQuota.objects.filter(
         status__in=[MonthlyQuota.Status.PENDING, MonthlyQuota.Status.OVERDUE]
-    ).select_related('vehicle__owner__user')[:8]
+    ).select_related('member__user')[:8]
     active_config = get_active_quota_config()
     overdue_quotas_total = MonthlyQuota.objects.filter(status=MonthlyQuota.Status.OVERDUE).count()
 
@@ -258,7 +258,7 @@ def treasurer_dashboard(request):
         'recent_quotas': recent_quotas,
         'unpaid_quotas': unpaid_quotas,
         'active_config': active_config,
-        'vehicles_total': Vehicle.objects.filter(is_active=True).count(),
+        'members_total': MemberProfile.objects.filter(is_active_member=True, role=MemberProfile.Role.MEMBER).count(),
         'quotas_pending_total': MonthlyQuota.objects.filter(status=MonthlyQuota.Status.PENDING).count(),
         'overdue_quotas_total': overdue_quotas_total,
         'payments_waiting_total': pending_payments.count(),
@@ -276,7 +276,7 @@ def treasury_reports(request):
     active_config = get_active_quota_config()
     debt_quotas = MonthlyQuota.objects.filter(
         status__in=[MonthlyQuota.Status.PENDING, MonthlyQuota.Status.OVERDUE]
-    ).select_related('vehicle__owner__user')
+    ).select_related('member__user')
     debt_entries = build_debt_report_entries(debt_quotas, config=active_config)
 
     total_base_debt = sum((entry['quota'].amount_due for entry in debt_entries), start=Decimal('0.00'))
@@ -287,7 +287,7 @@ def treasury_reports(request):
         'profile': profile,
         'active_config': active_config,
         'debt_entries': debt_entries,
-        'members_with_debts': len({entry['quota'].vehicle.owner_id for entry in debt_entries}),
+        'members_with_debts': len({entry['quota'].member_id for entry in debt_entries}),
         'total_base_debt': total_base_debt,
         'total_fines': total_fines,
         'total_with_fines': total_with_fines,
@@ -303,7 +303,7 @@ def review_payment(request, payment_id):
         return HttpResponseForbidden('Apenas o tesoureiro ou administrador pode rever pagamentos.')
 
     payment = get_object_or_404(
-        PaymentRecord.objects.select_related('quota__vehicle__owner__user'),
+        PaymentRecord.objects.select_related('quota__member__user'),
         pk=payment_id,
         status=PaymentRecord.Status.SUBMITTED,
     )
@@ -341,7 +341,7 @@ def payment_receipt(request, payment_id):
     profile = get_or_create_profile(request.user)
     payment = get_object_or_404(
         PaymentRecord.objects.select_related(
-            'quota__vehicle__owner__user',
+            'quota__member__user',
             'validated_by__user',
         ),
         pk=payment_id,
@@ -385,6 +385,49 @@ def mark_cash_payment(request, quota_id):
         messages.success(request, 'Pagamento em maos marcado como pago com sucesso.')
 
     return redirect('portal:treasurer_dashboard')
+
+
+def add_one_month(dt):
+    if dt.month == 12:
+        return dt.replace(year=dt.year + 1, month=1, day=1)
+    else:
+        return dt.replace(month=dt.month + 1, day=1)
+
+
+@login_required
+def generate_advance_quota(request):
+    profile = get_or_create_profile(request.user)
+    if request.method == 'POST':
+        config = get_active_quota_config()
+        if not config:
+            messages.error(request, 'Nao existe uma configuracao de quota activa.')
+            return redirect('portal:quotas')
+
+        latest_quota = MonthlyQuota.objects.filter(member=profile).order_by('-reference_month').first()
+        
+        if latest_quota:
+            next_month = add_one_month(latest_quota.reference_month)
+        else:
+            next_month = config.effective_from.replace(day=1)
+
+        due_date = next_month.replace(day=10)  # Defaulting due date to the 10th
+        
+        _, created = MonthlyQuota.objects.get_or_create(
+            member=profile,
+            reference_month=next_month,
+            defaults={
+                'due_date': due_date,
+                'amount_due': config.amount,
+                'status': MonthlyQuota.Status.PENDING,
+                'generated_automatically': False,
+            },
+        )
+        if created:
+            messages.success(request, f'Quota de {next_month.strftime("%m/%Y")} gerada com sucesso para pagamento adiantado.')
+        else:
+            messages.info(request, 'A quota para o proximo mes ja existia.')
+            
+    return redirect('portal:quotas')
 
 
 def session_expired(request):

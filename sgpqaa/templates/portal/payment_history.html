@@ -24,7 +24,7 @@
             {% for payment in payments %}
                 <article class="vehicle-card">
                     <div>
-                        <h3>{{ payment.quota.vehicle.plate_number }} - {{ payment.quota.reference_month|date:"m/Y" }}</h3>
+                        <h3>Quota de {{ payment.quota.reference_month|date:"m/Y" }}</h3>
                         <p>{{ payment.get_method_display }} | {{ payment.amount_paid }} AOA | {{ payment.payment_date|date:"d/m/Y H:i" }}</p>
                         <span class="vehicle-status">{{ payment.get_status_display }}</span>
                     </div>

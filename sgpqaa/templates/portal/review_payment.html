@@ -19,14 +19,14 @@
         <section class="vehicle-list-panel">
             <div class="section-heading vehicle-heading">
                 <p class="eyebrow">Detalhes do pagamento</p>
-                <h2>{{ payment.quota.vehicle.plate_number }} - {{ payment.quota.reference_month|date:"m/Y" }}</h2>
+                <h2>{{ payment.quota.member.member_number }} - {{ payment.quota.reference_month|date:"m/Y" }}</h2>
             </div>
             <div class="vehicle-card-list">
                 <article class="vehicle-card">
                     <div>
                         <h3>Associado</h3>
-                        <p>{{ payment.quota.vehicle.owner.user.get_full_name|default:payment.quota.vehicle.owner.user.username }}</p>
-                        <p>{{ payment.quota.vehicle.owner.member_number }}</p>
+                        <p>{{ payment.quota.member.user.get_full_name|default:payment.quota.member.user.username }}</p>
+                        <p>{{ payment.quota.member.member_number }}</p>
                     </div>
                 </article>
                 <article class="vehicle-card">

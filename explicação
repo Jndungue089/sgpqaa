@@ -1,0 +1,18 @@
+para poder rodar o projeto, deve instalar a extensão de Venv do python
+Eu já instalei, por isso, não vou ter o botão de instalar
+Após instalar, vai criar um venv
+
+Ele pediu para usar o existente por que eu já criei
+No seu caso, vai criar um novo
+
+Após criar o venv, vai rodar um terminal que vai ter o venv ativado
+
+Primeira coisa: rodar pip install -r requirements.txt
+
+Após isso, vai instalar todas as dependências
+
+Antes de rodar, vai digitar: python -m manage migrate
+
+Vai criar as tabelas e a base de dados
+
+Por fim, rodar o app com: python -m manage runserver

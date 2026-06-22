@@ -25,7 +25,7 @@
                 <p class="eyebrow">Quota disponivel</p>
                 <h2>A sua quota de {{ available_quota.reference_month|date:"F \\d\\e Y" }} esta disponivel.</h2>
             </div>
-            <p class="lead">Viatura: {{ available_quota.vehicle.plate_number }} | Valor: {{ available_quota.amount_due }} AOA | Estado: {{ available_quota.get_status_display }}</p>
+            <p class="lead">Valor: {{ available_quota.amount_due }} AOA | Estado: {{ available_quota.get_status_display }}</p>
             <div class="dashboard-actions">
                 <a class="button button-primary" href="{% url 'portal:quotas' %}">Ver esta quota</a>
             </div>
@@ -94,13 +94,13 @@
         <div class="roadmap-grid dashboard-grid">
             {% for quota in recent_quotas %}
                 <article>
-                    <h3>{{ quota.vehicle.plate_number }}</h3>
-                    <p>{{ quota.reference_month|date:"m/Y" }} - {{ quota.get_status_display }} - {{ quota.amount_due }} AOA</p>
+                    <h3>Quota de {{ quota.reference_month|date:"m/Y" }}</h3>
+                    <p>Estado: {{ quota.get_status_display }} - {{ quota.amount_due }} AOA</p>
                 </article>
             {% empty %}
                 <article>
                     <h3>Sem quotas</h3>
-                    <p>Ainda nao foram geradas quotas para as suas viaturas.</p>
+                    <p>Ainda nao foram geradas quotas para a sua conta.</p>
                 </article>
             {% endfor %}
         </div>
