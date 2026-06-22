@@ -3,107 +3,78 @@
 {% block title %}Dashboard | SGPQAA{% endblock %}
 
 {% block dashboard_content %}
-<main class="page-shell">
-    <section class="dashboard-header">
-        <div>
-            <p class="eyebrow">Area do associado</p>
-            <h1>Bem-vindo, {{ request.user.first_name|default:request.user.username }}.</h1>
-            <p class="lead">Esta e a sua area inicial no sistema. Aqui vamos centralizar os seus dados, viaturas e pagamentos.</p>
-        </div>
-        <div class="dashboard-actions">
-            <a class="button button-primary" href="{% url 'portal:vehicles' %}">Gerir viaturas</a>
-            <a class="button button-primary" href="{% url 'portal:quotas' %}">Ver quotas</a>
-            <a class="button button-primary" href="{% url 'portal:payment_history' %}">Historico de pagamentos</a>
-            <a class="button button-secondary" href="{% url 'portal:home' %}">Ver landing page</a>
-            <a class="button button-secondary" href="{% url 'portal:logout' %}">Terminar sessao</a>
-        </div>
-    </section>
-
-    {% if available_quota %}
-        <section class="vehicle-list-panel dashboard-alert">
-            <div class="section-heading vehicle-heading">
-                <p class="eyebrow">Quota disponivel</p>
-                <h2>A sua quota de {{ available_quota.reference_month|date:"F \\d\\e Y" }} esta disponivel.</h2>
+<div style="max-width: 1200px;">
+    <!-- Metric Cards -->
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 1.5rem;">
+        <div style="background: white; border: 1px solid var(--border); border-radius: 20px; padding: 1.5rem; display: flex; align-items: center; gap: 1.5rem; box-shadow: var(--shadow);">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(0, 82, 204, 0.1); color: var(--primary); display: flex; align-items: center; justify-content: center;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H8c-.7 0-1.3.3-1.8.7C5.3 8.6 4 10 4 10s-2.7.6-4.5 1.1c-.8.2-1.5 1-1.5 1.9v3c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
             </div>
-            <p class="lead">Valor: {{ available_quota.amount_due }} AOA | Estado: {{ available_quota.get_status_display }}</p>
-            <div class="dashboard-actions">
-                <a class="button button-primary" href="{% url 'portal:quotas' %}">Ver esta quota</a>
+            <div>
+                <div style="font-size: 0.85rem; color: var(--muted); font-weight: bold; text-transform: uppercase;">Meus Carros</div>
+                <div style="font-size: 1.4rem; font-weight: bold; color: var(--primary-dark); margin-top: 0.2rem;">{{ vehicles_count }} carro(s)</div>
             </div>
-        </section>
-    {% endif %}
-
-    <section class="dashboard-top-grid">
-        <article>
-            <h3>{{ vehicles_count }}</h3>
-            <p>viaturas registadas</p>
-        </article>
-        <article>
-            <h3>{{ quotas_count }}</h3>
-            <p>quotas ligadas ao seu perfil</p>
-        </article>
-        <article>
-            <h3>{{ payments_count }}</h3>
-            <p>pagamentos registados</p>
-        </article>
-        <article>
-            <h3>{{ pending_quotas_count }}</h3>
-            <p>{{ awaiting_validation_count }} quotas aguardam validacao da tesouraria</p>
-        </article>
-    </section>
-
-    <section class="info-strip">
-        <article>
-            <h3>Perfil</h3>
-            <p>{{ profile.member_number }} - {{ profile.get_role_display }}</p>
-        </article>
-        <article>
-            <h3>Contacto</h3>
-            <p>{{ profile.phone|default:"Sem telefone registado" }}</p>
-        </article>
-        <article>
-            <h3>Estado</h3>
-            <p>{% if profile.is_active_member %}Associado activo{% else %}Associado inactivo{% endif %}</p>
-        </article>
-    </section>
-
-    <section class="dashboard-preview">
-        <div class="section-heading">
-            <p class="eyebrow">Viaturas recentes</p>
-            <h2>As suas ultimas viaturas registadas</h2>
         </div>
-        <div class="roadmap-grid dashboard-grid">
-            {% for vehicle in recent_vehicles %}
-                <article>
-                    <h3>{{ vehicle.plate_number }}</h3>
-                    <p>{{ vehicle.model }} - {{ vehicle.year }} - {{ vehicle.color }}</p>
-                </article>
-            {% empty %}
-                <article>
-                    <h3>Sem viaturas</h3>
-                    <p>Ainda nao existe nenhuma viatura registada no seu perfil.</p>
-                </article>
-            {% endfor %}
+        
+        <div style="background: white; border: 1px solid var(--border); border-radius: 20px; padding: 1.5rem; display: flex; align-items: center; gap: 1.5rem; box-shadow: var(--shadow);">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(16, 185, 129, 0.1); color: #10b981; display: flex; align-items: center; justify-content: center;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            </div>
+            <div>
+                <div style="font-size: 0.85rem; color: var(--muted); font-weight: bold; text-transform: uppercase;">Estado Quotas</div>
+                <div style="font-size: 1.4rem; font-weight: bold; color: var(--primary-dark); margin-top: 0.2rem;">
+                    {% if pending_quotas_count > 0 %}
+                        Pendente ({{ pending_quotas_count }})
+                    {% elif available_quota %}
+                        {{ available_quota.get_status_display }}
+                    {% else %}
+                        --
+                    {% endif %}
+                </div>
+            </div>
         </div>
-    </section>
 
-    <section class="dashboard-preview">
-        <div class="section-heading">
-            <p class="eyebrow">Quotas recentes</p>
-            <h2>Estado actual das suas quotas</h2>
+        <div style="background: white; border: 1px solid var(--border); border-radius: 20px; padding: 1.5rem; display: flex; align-items: center; gap: 1.5rem; box-shadow: var(--shadow);">
+            <div style="width: 48px; height: 48px; border-radius: 12px; background: rgba(245, 158, 11, 0.1); color: #f59e0b; display: flex; align-items: center; justify-content: center;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+            </div>
+            <div>
+                <div style="font-size: 0.85rem; color: var(--muted); font-weight: bold; text-transform: uppercase;">Próximo Vencimento</div>
+                <div style="font-size: 1.4rem; font-weight: bold; color: var(--primary-dark); margin-top: 0.2rem;">Dia 10 de cada mês</div>
+            </div>
         </div>
-        <div class="roadmap-grid dashboard-grid">
-            {% for quota in recent_quotas %}
-                <article>
-                    <h3>Quota de {{ quota.reference_month|date:"m/Y" }}</h3>
-                    <p>Estado: {{ quota.get_status_display }} - {{ quota.amount_due }} AOA</p>
-                </article>
-            {% empty %}
-                <article>
-                    <h3>Sem quotas</h3>
-                    <p>Ainda nao foram geradas quotas para a sua conta.</p>
-                </article>
-            {% endfor %}
+    </div>
+
+    <!-- Alert Block -->
+    <div style="background: var(--accent); color: var(--accent-text); padding: 1rem 1.5rem; border-radius: 16px; display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <span style="font-weight: 600; font-size: 0.95rem;">Bem-vindo à sua área de associado! Mantenha as suas quotas em dia.</span>
+    </div>
+
+    <!-- Quick Actions -->
+    <div>
+        <h3 style="font-size: 1.1rem; color: var(--primary-dark); margin-bottom: 1rem; font-family: inherit;">Ações Rápidas</h3>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <a href="{% url 'portal:quotas' %}" style="background: var(--primary); color: white; padding: 0.75rem 1.5rem; border-radius: 99px; font-weight: bold; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.5rem; transition: transform 0.2s;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                Pagar Quota
+            </a>
+            <a href="{% url 'portal:vehicles' %}" style="background: var(--primary); color: white; padding: 0.75rem 1.5rem; border-radius: 99px; font-weight: bold; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.5rem; transition: transform 0.2s;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H8c-.7 0-1.3.3-1.8.7C5.3 8.6 4 10 4 10s-2.7.6-4.5 1.1c-.8.2-1.5 1-1.5 1.9v3c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
+                Registar Carro
+            </a>
+            <a href="{% url 'portal:vehicles' %}" style="background: var(--primary); color: white; padding: 0.75rem 1.5rem; border-radius: 99px; font-weight: bold; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.5rem; transition: transform 0.2s;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect></svg>
+                Meus Carros
+            </a>
+            <a href="{% url 'portal:payment_history' %}" style="background: var(--primary); color: white; padding: 0.75rem 1.5rem; border-radius: 99px; font-weight: bold; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.5rem; transition: transform 0.2s;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                Ver Histórico
+            </a>
         </div>
-    </section>
-</main>
+    </div>
+    
+    <!-- Large empty area from the mockup -->
+    <div style="background: white; border: 1px solid var(--border); border-radius: 20px; box-shadow: var(--shadow); min-height: 400px; margin-top: 2rem;"></div>
+</div>
 {% endblock %}

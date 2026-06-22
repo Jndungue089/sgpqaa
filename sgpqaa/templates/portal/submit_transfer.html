@@ -3,45 +3,101 @@
 {% block title %}Transferencia Bancaria | SGPQAA{% endblock %}
 
 {% block dashboard_content %}
-<main class="auth-shell">
-    <section class="auth-panel">
-        <div class="auth-intro">
-            <p class="eyebrow">Transferencia bancaria</p>
-            <h1>Enviar comprovante de pagamento.</h1>
-            <p class="lead">O associado faz o pagamento fora do sistema e depois envia o comprovante para que o tesoureiro possa validar e marcar a quota como paga.</p>
-            <div class="payment-summary">
-                <p><strong>Associado:</strong> {{ quota.member.member_number }}</p>
-                {% if quota.member.vehicles.all %}
-                    <p><strong>Viatura(s):</strong> 
-                        {% for v in quota.member.vehicles.all %}
-                            {{ v.plate_number }}{% if not forloop.last %}, {% endif %}
-                        {% endfor %}
+<div style="max-width: 1000px; margin: 0 auto;">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem;">
+        <div>
+            <h2 style="font-size: 1.8rem; color: var(--primary-dark); margin: 0 0 0.5rem 0;">Transferência Bancária</h2>
+            <p style="color: var(--muted); margin: 0;">Submeta o comprovativo para validar o pagamento desta quota.</p>
+        </div>
+        <a href="{% url 'portal:quotas' %}" style="display: inline-flex; align-items: center; gap: 0.5rem; color: var(--muted); font-weight: 600; padding: 0.5rem 1rem; border: 1px solid var(--border); border-radius: 12px; background: white; transition: all 0.2s;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            Voltar
+        </a>
+    </div>
+
+    <div style="background: white; border-radius: 24px; border: 1px solid var(--border); box-shadow: var(--shadow); overflow: hidden;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));">
+            
+            <!-- Info Column (Dark Blue) -->
+            <div style="background: var(--primary); color: white; padding: 3rem 2.5rem; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <div style="width: 48px; height: 48px; background: rgba(255,255,255,0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem;">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2" ry="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+                    </div>
+                    <h3 style="font-size: 1.4rem; margin: 0 0 1rem 0; font-family: inherit;">Detalhes da Quota</h3>
+                    <p style="opacity: 0.8; font-size: 0.95rem; line-height: 1.6; margin-bottom: 2rem;">
+                        O associado faz o pagamento por transferência ou Multicaixa e anexa aqui o talão. O tesoureiro irá confirmar o montante na conta da associação.
                     </p>
+
+                    <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 1.5rem;">
+                        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.8rem; margin-bottom: 0.8rem;">
+                            <span style="opacity: 0.7; font-size: 0.9rem;">Mês de Referência</span>
+                            <strong style="font-size: 1rem;">{{ quota.reference_month|date:"m/Y" }}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.8rem; margin-bottom: 0.8rem;">
+                            <span style="opacity: 0.7; font-size: 0.9rem;">Associado n.º</span>
+                            <strong style="font-size: 1rem;">{{ quota.member.member_number }}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 0.8rem; margin-bottom: 0.8rem;">
+                            <span style="opacity: 0.7; font-size: 0.9rem;">Vencimento</span>
+                            <strong style="font-size: 1rem;">{{ quota.due_date|date:"d/m/Y" }}</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 0.5rem;">
+                            <span style="opacity: 0.7; font-size: 0.9rem;">Valor a Pagar</span>
+                            <strong style="font-size: 1.5rem; color: var(--accent);">{{ quota.amount_due }} AOA</strong>
+                        </div>
+                    </div>
+                </div>
+
+                {% if quota.member.vehicles.all %}
+                <div style="margin-top: 2rem;">
+                    <h4 style="font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.7; margin: 0 0 0.8rem 0;">Viatura(s) Associada(s)</h4>
+                    <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        {% for v in quota.member.vehicles.all %}
+                        <span style="background: rgba(255,255,255,0.1); padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.85rem; font-weight: bold; border: 1px solid rgba(255,255,255,0.2);">
+                            {{ v.plate_number }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
                 {% endif %}
-                <p><strong>Mes:</strong> {{ quota.reference_month|date:"m/Y" }}</p>
-                <p><strong>Valor:</strong> {{ quota.amount_due }} AOA</p>
-                <p><strong>Vencimento:</strong> {{ quota.due_date|date:"d/m/Y" }}</p>
+            </div>
+
+            <!-- Form Column (White) -->
+            <div style="padding: 3rem 2.5rem;">
+                <form method="post" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 1.2rem; height: 100%;">
+                    {% csrf_token %}
+                    <div>
+                        <h3 style="font-size: 1.4rem; color: var(--primary-dark); margin: 0 0 0.5rem 0;">Submeter Comprovativo</h3>
+                        <p style="color: var(--muted); font-size: 0.9rem; margin: 0 0 1.5rem 0;">Preencha os campos abaixo e anexe a imagem ou PDF do seu talão.</p>
+                    </div>
+
+                    {% if form.non_field_errors %}
+                        <div class="form-error">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    {% for field in form %}
+                        <label class="field-group">
+                            <span style="color: var(--primary-dark); font-weight: 700; font-size: 0.9rem;">{{ field.label }}</span>
+                            {{ field }}
+                            {% if field.errors %}
+                                <small class="field-error">{{ field.errors|join:", " }}</small>
+                            {% endif %}
+                            {% if field.help_text %}
+                                <small style="color: var(--muted); font-size: 0.8rem; margin-top: 0.2rem;">{{ field.help_text }}</small>
+                            {% endif %}
+                        </label>
+                    {% endfor %}
+                    
+                    <div style="margin-top: auto; padding-top: 2rem;">
+                        <button type="submit" class="button button-primary button-full" style="border-radius: 12px; font-weight: bold; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                            Enviar Comprovante
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
-
-        <form method="post" enctype="multipart/form-data" class="auth-form">
-            {% csrf_token %}
-            <h2>Submeter comprovante</h2>
-            {% if form.non_field_errors %}
-                <div class="form-error">{{ form.non_field_errors }}</div>
-            {% endif %}
-            {% for field in form %}
-                <label class="field-group">
-                    <span>{{ field.label }}</span>
-                    {{ field }}
-                    {% if field.errors %}
-                        <small class="field-error">{{ field.errors|join:", " }}</small>
-                    {% endif %}
-                </label>
-            {% endfor %}
-            <button type="submit" class="button button-primary button-full">Enviar comprovante</button>
-            <a class="button button-secondary button-full" href="{% url 'portal:quotas' %}">Cancelar</a>
-        </form>
-    </section>
-</main>
+    </div>
+</div>
 {% endblock %}

@@ -3,81 +3,205 @@
 {% block title %}Início | SGPQAA{% endblock %}
 
 {% block body %}
-<main class="page-shell">
-    <section class="hero">
-        <div class="hero-copy">
-            <p class="eyebrow">Gestao simples e moderna</p>
-            <h1>Controle as quotas dos associados com mais rapidez e menos papelada.</h1>
-            <p class="lead">
-                O SGPQAA organiza associados, viaturas, cobrancas mensais e pagamentos
-                num unico lugar, com uma experiencia clara para toda a associacao.
+<!-- Navigation -->
+<nav style="background: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border);">
+    <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: bold; font-size: 1.2rem; color: var(--primary-dark);">
+        <div style="width: 32px; height: 32px; background: var(--primary); border-radius: 8px; color: white; display: flex; align-items: center; justify-content: center;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H8c-.7 0-1.3.3-1.8.7C5.3 8.6 4 10 4 10s-2.7.6-4.5 1.1c-.8.2-1.5 1-1.5 1.9v3c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
+        </div>
+        ANATA
+    </div>
+    <div style="display: flex; gap: 2rem; font-weight: 600; color: var(--muted); font-size: 0.95rem;">
+        <a href="#" style="color: var(--primary-dark);">Início</a>
+        <a href="#beneficios">Benefícios</a>
+        <a href="#como-funciona">Como Funciona</a>
+        <a href="#contacto">Contacto</a>
+    </div>
+    <div>
+        <a href="{% url 'portal:login' %}" style="background: var(--primary); color: white; padding: 0.6rem 1.2rem; border-radius: 99px; font-weight: bold; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            Minha Conta
+        </a>
+    </div>
+</nav>
+
+<!-- Hero Section -->
+<section style="background: var(--primary); color: white; padding: 5rem 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;">
+    <div style="max-width: 600px; margin-left: auto;">
+        <div style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(255,255,255,0.1); padding: 0.3rem 0.8rem; border-radius: 99px; font-size: 0.8rem; font-weight: bold; margin-bottom: 1.5rem;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+            Força e União
+        </div>
+        <h1 style="font-size: 3.5rem; line-height: 1.1; margin: 0 0 1rem 0;">Gerir as suas quotas<br>nunca foi tão fácil</h1>
+        <p style="font-size: 1.1rem; opacity: 0.8; margin-bottom: 2rem; line-height: 1.6;">
+            Plataforma moderna e segura para associados ANATA<br>
+            organizarem pagamentos, acederem a vantagens e manterem<br>
+            tudo em dia.
+        </p>
+        <div style="display: flex; gap: 1rem;">
+            <a href="{% url 'portal:register' %}" style="background: white; color: var(--primary); padding: 0.8rem 1.5rem; border-radius: 99px; font-weight: bold; display: inline-flex; align-items: center; gap: 0.5rem;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                Quero ser associado
+            </a>
+            <a href="#beneficios" style="background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white; padding: 0.8rem 1.5rem; border-radius: 99px; font-weight: bold; display: inline-flex; align-items: center; gap: 0.5rem; transition: background 0.2s;">
+                Ver benefícios
+            </a>
+        </div>
+    </div>
+    <div style="display: flex; gap: 3rem; margin-right: auto; background: rgba(255,255,255,0.05); padding: 2rem 3rem; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1);">
+        <div>
+            <div style="font-size: 2rem; font-weight: bold;">2.5K+</div>
+            <div style="font-size: 0.85rem; opacity: 0.7;">Associados Ativos</div>
+        </div>
+        <div>
+            <div style="font-size: 2rem; font-weight: bold;">98%</div>
+            <div style="font-size: 0.85rem; opacity: 0.7;">Satisfação</div>
+        </div>
+        <div>
+            <div style="font-size: 2rem; font-weight: bold;">24/7</div>
+            <div style="font-size: 0.85rem; opacity: 0.7;">Suporte Online</div>
+        </div>
+    </div>
+</section>
+
+<!-- Beneficios -->
+<section id="beneficios" style="padding: 5rem 2rem; max-width: 1200px; margin: 0 auto; text-align: center;">
+    <p style="text-transform: uppercase; color: var(--primary); font-weight: bold; font-size: 0.85rem; letter-spacing: 0.05em; margin: 0;">Vantagens Exclusivas</p>
+    <h2 style="font-size: 2.5rem; color: var(--primary-dark); margin: 0.5rem 0 1rem 0;">Porque ser associado ANATA?</h2>
+    <p style="color: var(--muted); margin-bottom: 3rem;">Benefícios pensados para o taxista angolano moderno.</p>
+    
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem;">
+        <div style="background: var(--bg); padding: 2rem; border-radius: 24px; text-align: center;">
+            <div style="display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; background: rgba(0, 82, 204, 0.1); color: var(--primary); border-radius: 12px; margin-bottom: 1.5rem;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+            </div>
+            <h3 style="color: var(--primary-dark); font-size: 1.1rem; margin: 0 0 0.5rem 0;">Gestão de Quotas</h3>
+            <p style="color: var(--muted); font-size: 0.9rem; line-height: 1.5; margin: 0;">Controle pagamentos, emita recibos e mantenha o seu histórico sempre atualizado.</p>
+        </div>
+        <div style="background: var(--bg); padding: 2rem; border-radius: 24px; text-align: center;">
+            <div style="display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; background: rgba(0, 82, 204, 0.1); color: var(--primary); border-radius: 12px; margin-bottom: 1.5rem;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+            </div>
+            <h3 style="color: var(--primary-dark); font-size: 1.1rem; margin: 0 0 0.5rem 0;">Apoio Prioritário</h3>
+            <p style="color: var(--muted); font-size: 0.9rem; line-height: 1.5; margin: 0;">Linha direta para associados com regularidade em dia.</p>
+        </div>
+        <div style="background: var(--bg); padding: 2rem; border-radius: 24px; text-align: center;">
+            <div style="display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; background: rgba(0, 82, 204, 0.1); color: var(--primary); border-radius: 12px; margin-bottom: 1.5rem;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            </div>
+            <h3 style="color: var(--primary-dark); font-size: 1.1rem; margin: 0 0 0.5rem 0;">Descontos e Parcerias</h3>
+            <p style="color: var(--muted); font-size: 0.9rem; line-height: 1.5; margin: 0;">Oficinas, seguros e combustível com preços especiais.</p>
+        </div>
+        <div style="background: var(--bg); padding: 2rem; border-radius: 24px; text-align: center;">
+            <div style="display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; background: rgba(0, 82, 204, 0.1); color: var(--primary); border-radius: 12px; margin-bottom: 1.5rem;">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+            </div>
+            <h3 style="color: var(--primary-dark); font-size: 1.1rem; margin: 0 0 0.5rem 0;">Formação Contínua</h3>
+            <p style="color: var(--muted); font-size: 0.9rem; line-height: 1.5; margin: 0;">Cursos de direção defensiva, finanças e atendimento.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Como Funciona -->
+<section id="como-funciona" style="background: var(--bg); padding: 5rem 2rem; text-align: center;">
+    <div style="max-width: 1200px; margin: 0 auto;">
+        <p style="text-transform: uppercase; color: var(--primary); font-weight: bold; font-size: 0.85rem; letter-spacing: 0.05em; margin: 0;">Passo a Passo</p>
+        <h2 style="font-size: 2.5rem; color: var(--primary-dark); margin: 0.5rem 0 3rem 0;">Como gerir os seus pagamentos?</h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem;">
+            <div style="background: white; padding: 2.5rem 2rem; border-radius: 24px; box-shadow: var(--shadow);">
+                <div style="width: 40px; height: 40px; background: var(--primary-dark); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; margin: 0 auto 1.5rem auto;">1</div>
+                <h3 style="color: var(--primary-dark); font-size: 1.1rem; margin: 0 0 0.5rem 0;">Aceda à plataforma</h3>
+                <p style="color: var(--muted); font-size: 0.9rem; line-height: 1.5; margin: 0;">Entre com o seu email e palavra-passe na Área de Associado.</p>
+            </div>
+            <div style="background: white; padding: 2.5rem 2rem; border-radius: 24px; box-shadow: var(--shadow);">
+                <div style="width: 40px; height: 40px; background: var(--primary-dark); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; margin: 0 auto 1.5rem auto;">2</div>
+                <h3 style="color: var(--primary-dark); font-size: 1.1rem; margin: 0 0 0.5rem 0;">Registe o seu veículo</h3>
+                <p style="color: var(--muted); font-size: 0.9rem; line-height: 1.5; margin: 0;">Adicione os dados do seu táxi para identificação.</p>
+            </div>
+            <div style="background: white; padding: 2.5rem 2rem; border-radius: 24px; box-shadow: var(--shadow);">
+                <div style="width: 40px; height: 40px; background: var(--primary-dark); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; margin: 0 auto 1.5rem auto;">3</div>
+                <h3 style="color: var(--primary-dark); font-size: 1.1rem; margin: 0 0 0.5rem 0;">Pague com facilidade</h3>
+                <p style="color: var(--muted); font-size: 0.9rem; line-height: 1.5; margin: 0;">Escolha a forma: Multicaixa, transferência ou cash na secretaria.</p>
+            </div>
+            <div style="background: white; padding: 2.5rem 2rem; border-radius: 24px; box-shadow: var(--shadow);">
+                <div style="width: 40px; height: 40px; background: var(--primary-dark); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; margin: 0 auto 1.5rem auto;">4</div>
+                <h3 style="color: var(--primary-dark); font-size: 1.1rem; margin: 0 0 0.5rem 0;">Receba comprovativo</h3>
+                <p style="color: var(--muted); font-size: 0.9rem; line-height: 1.5; margin: 0;">Guarde digitalmente o comprovativo da sua quota.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Depoimentos -->
+<section style="padding: 5rem 2rem; max-width: 1200px; margin: 0 auto;">
+    <p style="text-transform: uppercase; color: var(--primary); font-weight: bold; font-size: 0.85rem; letter-spacing: 0.05em; margin: 0;">Depoimentos</p>
+    <h2 style="font-size: 2.5rem; color: var(--primary-dark); margin: 0.5rem 0 3rem 0;">O que os associados dizem</h2>
+    
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
+        <div style="background: white; border: 1px solid var(--border); padding: 2rem; border-radius: 24px;">
+            <p style="color: var(--text); font-style: italic; font-size: 0.95rem; line-height: 1.6; margin: 0 0 1.5rem 0;">"A ANATA revolucionou a minha vida. Agora controlo as minhas quotas pelo telemóvel e ainda tenho desconto em peças."</p>
+            <div style="font-weight: bold; color: var(--primary-dark); font-size: 0.9rem;">— João K., Luanda</div>
+        </div>
+        <div style="background: white; border: 1px solid var(--border); padding: 2rem; border-radius: 24px;">
+            <p style="color: var(--text); font-style: italic; font-size: 0.95rem; line-height: 1.6; margin: 0 0 1.5rem 0;">"Plataforma intuitiva e suporte rápido. Recomendo a todos os colegas taxistas."</p>
+            <div style="font-weight: bold; color: var(--primary-dark); font-size: 0.9rem;">— Maria C., Benguela</div>
+        </div>
+        <div style="background: white; border: 1px solid var(--border); padding: 2rem; border-radius: 24px;">
+            <p style="color: var(--text); font-style: italic; font-size: 0.95rem; line-height: 1.6; margin: 0 0 1.5rem 0;">"Me sinto valorizado. A ANATA cuida mesmo da nossa classe."</p>
+            <div style="font-weight: bold; color: var(--primary-dark); font-size: 0.9rem;">— Pedro M., Huíla</div>
+        </div>
+    </div>
+</section>
+
+<!-- Footer Top Area do Associado -->
+<section style="background: var(--primary-dark); color: white; padding: 4rem 2rem; text-align: center;">
+    <div style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; align-items: center;">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-bottom: 1rem;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+        <h2 style="font-size: 2rem; margin: 0 0 1rem 0;">Área do Associado</h2>
+        <p style="opacity: 0.8; margin-bottom: 2rem;">Registe o seu carro, faça pagamentos, consulte o estado e veja o histórico completo.</p>
+        <a href="{% url 'portal:login' %}" style="background: white; color: var(--primary-dark); padding: 0.8rem 2rem; border-radius: 99px; font-weight: bold; display: inline-flex; align-items: center; gap: 0.5rem;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            Aceder à Área do Associado
+        </a>
+    </div>
+</section>
+
+<!-- Footer Base -->
+<footer id="contacto" style="background: #021422; color: white; padding: 4rem 2rem 2rem 2rem;">
+    <div style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 4rem; margin-bottom: 3rem;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: bold; font-size: 1.2rem; margin-bottom: 1rem;">
+                ANATA
+            </div>
+            <p style="opacity: 0.7; font-size: 0.9rem; line-height: 1.6; max-width: 300px; margin-bottom: 1.5rem;">
+                Unindo os taxistas de Angola para um futuro melhor.
             </p>
-            <div class="hero-actions">
-                <a class="button button-primary" href="{% url 'portal:login' %}">Entrar no sistema</a>
-                <a class="button button-secondary" href="#beneficios">Ver beneficios</a>
+            <div style="display: flex; gap: 1rem;">
+                <a href="#" style="color: white; opacity: 0.7;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg></a>
+                <a href="#" style="color: white; opacity: 0.7;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></a>
+                <a href="#" style="color: white; opacity: 0.7;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg></a>
             </div>
         </div>
-
-        <div class="hero-card">
-            <span class="card-label">{{ association_name }}</span>
-            <h2>Mais organizacao para cobrar, acompanhar e validar quotas.</h2>
-            <div class="stat-grid">
-                <article>
-                    <strong>Associados</strong>
-                    <span>cadastro centralizado e facil de consultar</span>
-                </article>
-                <article>
-                    <strong>Pagamentos</strong>
-                    <span>registo manual e simulacao de Multicaixa</span>
-                </article>
-            </div>
+        <div>
+            <h4 style="font-size: 1.1rem; margin: 0 0 1.5rem 0;">Contacto</h4>
+            <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 1rem; opacity: 0.8; font-size: 0.9rem;">
+                <li style="display: flex; align-items: center; gap: 0.5rem;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg> +244 923 456 789</li>
+                <li style="display: flex; align-items: center; gap: 0.5rem;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg> geral@anata.ao</li>
+                <li style="display: flex; align-items: center; gap: 0.5rem;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> Luanda, Angola</li>
+            </ul>
         </div>
-    </section>
-
-    <section class="info-strip" id="beneficios">
-        <article>
-            <h3>Cadastro rapido</h3>
-            <p>Registe associados e viaturas sem complicacao.</p>
-        </article>
-        <article>
-            <h3>Cobranca mensal</h3>
-            <p>Acompanhe quotas pendentes, pagas e em atraso.</p>
-        </article>
-        <article>
-            <h3>Validacao simples</h3>
-            <p>Confirme pagamentos com fluxo claro para tesouraria.</p>
-        </article>
-    </section>
-
-    <section class="roadmap" id="roadmap">
-        <div class="section-heading">
-            <p class="eyebrow">O que o sistema oferece</p>
-            <h2>Uma solucao pensada para a rotina da associacao</h2>
+        <div>
+            <h4 style="font-size: 1.1rem; margin: 0 0 1.5rem 0;">Links Úteis</h4>
+            <ul style="list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.8rem; opacity: 0.8; font-size: 0.9rem;">
+                <li><a href="#" style="text-decoration: none; color: inherit;">Estatuto da ANATA</a></li>
+                <li><a href="#" style="text-decoration: none; color: inherit;">Perguntas Frequentes</a></li>
+                <li><a href="#" style="text-decoration: none; color: inherit;">Canal de Denúncia</a></li>
+            </ul>
         </div>
-        <div class="roadmap-grid">
-            <article>
-                <h3>Gestao de associados</h3>
-                <p>Dados organizados para consulta e acompanhamento administrativo.</p>
-            </article>
-            <article>
-                <h3>Registo de viaturas</h3>
-                <p>Cada associado pode manter as suas viaturas ligadas ao seu perfil.</p>
-            </article>
-            <article>
-                <h3>Pagamentos controlados</h3>
-                <p>Fluxo preparado para dinheiro e pagamento digital simulado.</p>
-            </article>
-            <article>
-                <h3>Historico e acompanhamento</h3>
-                <p>Mais visibilidade sobre cobrancas, validacoes e movimento mensal.</p>
-            </article>
-        </div>
-    </section>
-
-    <section class="cta-panel">
-        <p class="eyebrow">SGPQAA</p>
-        <h2>Menos processos manuais. Mais controlo para a associacao.</h2>
-        <a class="button button-primary" href="{% url 'portal:register' %}">Criar conta</a>
-    </section>
-</main>
+    </div>
+    <div style="max-width: 1200px; margin: 0 auto; text-align: center; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 2rem; font-size: 0.8rem; opacity: 0.5;">
+        &copy; 2026 ANATA - Associação Nacional dos Taxistas de Angola. Todos os direitos reservados.
+    </div>
+</footer>
 {% endblock %}
